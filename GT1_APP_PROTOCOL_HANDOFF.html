@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>GT1 · APP / 电脑端控制协议交接 · 2026-09-14</title>
+<style>
+:root{--ink:#18272c;--muted:#52676f;--line:#d7e1e3;--paper:#fff;--bg:#f4f7f7;--accent:#075b60;--soft:#eaf4f3;--warn:#81540d}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.8 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+a{color:var(--accent);text-underline-offset:3px}header{background:var(--ink);color:white;padding:42px max(24px,calc((100vw - 1220px)/2)) 34px}header p{max-width:860px;color:#d3e5e6}h1{font-size:32px;line-height:1.4;margin:10px 0 16px}h2{font-size:24px;line-height:1.5;margin:0 0 20px;color:var(--accent)}h3{font-size:18px;margin:26px 0 10px}p{margin:12px 0}.eyebrow{font-size:12px;letter-spacing:.12em}small,.small{font-size:13px;color:var(--muted)}header small{color:#c5d7d9}.tags{display:flex;gap:8px;flex-wrap:wrap}.tag{font-size:13px;padding:3px 10px;border:1px solid #597176;border-radius:4px}.shell{max-width:1268px;margin:auto;display:grid;grid-template-columns:224px minmax(0,1fr);gap:32px;padding:32px 24px 64px}nav{position:sticky;top:20px;align-self:start;max-height:95vh;overflow:auto;font-size:14px}nav strong{display:block;margin-bottom:12px}nav a{display:block;padding:5px 10px;border-left:2px solid var(--line);text-decoration:none}nav a:hover,nav a:focus{background:var(--soft);border-color:var(--accent)}main{min-width:0}section{background:var(--paper);padding:30px;margin-bottom:24px;border:1px solid var(--line);border-radius:6px;min-width:0}.notice{padding:14px 18px;border-left:4px solid var(--accent);background:var(--soft);margin:18px 0}.warning{border-left-color:var(--warn);background:#fff6e6}ul,ol{padding-left:24px}li{margin:7px 0}code,kbd{font:13px/1.6 Consolas,"SFMono-Regular",monospace;background:#edf2f2;padding:2px 4px;border-radius:3px;overflow-wrap:anywhere}pre{font:13px/1.7 Consolas,"SFMono-Regular",monospace;background:#f0f4f4;padding:16px;border:1px solid var(--line);border-radius:4px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}pre code{padding:0;background:none}table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.6;margin:12px 0}th,td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:top;text-align:left;overflow-wrap:anywhere}th{background:#edf4f4;font-weight:600}tbody tr:nth-child(even){background:#fafcfc}.scroll{overflow:auto;max-width:100%}.wire th:first-child,.wire td:first-child{white-space:nowrap}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.metric{font-size:25px;color:var(--accent);display:block}.step{font-size:13px;font-weight:700;color:var(--accent)}.flow{padding:14px;border:1px solid var(--line);font-size:14px}.tools{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}button,select,input,textarea{font:inherit;border:1px solid #a8bdc2;border-radius:4px;padding:8px;background:white;color:var(--ink)}button{cursor:pointer;color:var(--accent);font-weight:600}button:hover{background:var(--soft)}button:focus-visible,a:focus-visible{outline:3px solid #3e8b91;outline-offset:3px}textarea{width:100%;min-height:110px;resize:vertical;font:13px/1.7 Consolas,monospace}label{display:block;margin:12px 0 5px}details{border-top:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:600;color:var(--accent)}.toc-top{font-size:13px;float:right}.status{color:var(--accent);font-weight:600}footer{max-width:960px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font-size:13px}.checklist li{padding:3px 0}hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+@media(max-width:900px){.shell{grid-template-columns:1fr;gap:18px;padding:18px 12px}nav{position:static;max-height:none;display:flex;gap:4px;flex-wrap:wrap}nav strong{width:100%;margin:0}nav a{border:1px solid var(--line);border-radius:4px;font-size:12px;padding:3px 8px}section{padding:20px 16px}header{padding:28px 20px}h1{font-size:26px}h2{font-size:22px}.two{grid-template-columns:1fr}th,td{padding:8px 6px;font-size:13px}}
+@media print{body{background:white;font-size:11px}header{padding:12px 0;background:white;color:black}header p,header small{color:#333}h1{font-size:24px}.shell{display:block;padding:0;max-width:none}nav,.tools,.no-print,.toc-top{display:none!important}section{border:0;border-top:1px solid #999;border-radius:0;padding:18px 0;margin:0;break-inside:auto}h2,h3{break-after:avoid}tr,pre,.notice{break-inside:avoid}table,th,td{font-size:10px}footer{padding:0}.tag{border-color:#999}a{color:black}pre{font-size:10px}.scroll{overflow:visible}}
+</style>
+</head>
+<body>
+<header id="top">
+<div class="eyebrow">SINCO · GT1 / AC703N · DEVELOPER HANDOFF</div>
+<h1>手机 APP 与电脑端<br>共用控制协议</h1>
+<p>一套参数定义，一套命令。手机使用私有 BLE GATT，电脑使用 USB MIDI；设备裁决最终值。本文可单文件离线打开、转发及打印，不依赖网络或仓库附件。</p>
+<div class="tags"><span class="tag">交接版本 2026-09-14 · r2</span><span class="tag">固件基线 0.2.117-dev</span><span class="tag">Protocol 1</span><span class="tag">Schema 12</span></div>
+<p><small>基于当前源码及主机回归核对。不是宣称手机／电脑客户端、板上吞吐和全部 APP 页面已经联合验收。本文不修改固件。</small></p>
+</header>
+<div class="shell">
+<nav aria-label="章节目录">
+<strong>开发者导航</strong>
+<a href="#start">01 · 先做什么</a><a href="#transport">02 · BLE / USB 连接</a>
+<a href="#wire">03 · 帧与编码</a><a href="#sync">04 · 首次同步与通知</a>
+<a href="#read">05 · 范围 READ</a><a href="#write">06 · 原子分包 WRITE</a>
+<a href="#globals">07 · 全局 64 B</a><a href="#patch">08 · 音色 374 B</a>
+<a href="#commands">09 · 页面命令速查</a><a href="#metadata">10 · 效果与资源元数据</a>
+<a href="#files">11 · 导入 / 导出</a><a href="#midi">12 · 普通 MIDI</a>
+<a href="#errors">13 · 错误与恢复</a><a href="#examples">14 · 报文与代码</a>
+<a href="#acceptance">15 · 联调验收</a><a href="#basis">16 · 实现边界 / 来源</a>
+</nav>
+<main>
+<section id="start">
+<a class="toc-top" href="#top">返回顶部</a><h2>01 / 先实现一条完整闭环</h2>
+<div class="notice"><strong>APP 不走 BLE-MIDI。</strong>首选 AE40 私有 GATT 通道，直接传本文的控制帧；不加 MIDI 时间戳。BLE-MIDI 是独立的可选 MIDI 通道，不能混用两者封装。</div>
+<div class="two">
+<div><span class="metric">438 B</span><strong>日常首次同步的原始参数</strong><p>64 B 全局 + 374 B 当前音色。不是每次连接传 128 个音色。</p></div>
+<div><span class="metric">47,936 B</span><strong>完整逻辑参数库</strong><p>64 + 128 × 374。完整备份、批量浏览等明确需要时再读取；不含模型、录音或 SDK 配对信息。</p></div>
+</div>
+<ol>
+<li>连接设备，发现服务和特征，先启用 AE42 Notify，再发控制请求。</li>
+<li>查询设备身份 <code>09 / 01 / 22</code> 和范围能力 <code>09 / 01 / 40</code>。确认 protocol、schema，不凭蓝牙名称识别版本。</li>
+<li>发送重新同步 <code>09 / 00 / 42 : 03</code>。收齐同一 revision 的全局和当前音色，再发 ACK；ACK 确认同版本且 state=3 后，才开放编辑。</li>
+<li>拖动一个音量：用范围 WRITE 写完整字段，收到终态回执后，以实际值更新 UI；其他端通过通知同步。</li>
+<li>逐步加入切音色、UNIT 编辑、鼓机、Looper、调音器、旋钮映射；最后做备份文件和异常恢复。</li>
+</ol>
+<p>界面可有临时拖动值，但“设备已生效值”只来自成功回执／完整通知。数据层区分 <code>用户编辑</code> 和 <code>设备更新</code>，收到通知不能再触发 WRITE。</p>
+<p><strong>保存：</strong>编辑与导入改变设备 PSRAM；正常软关机才持久化。<code>PRESET SAVE</code> 成功不是 Flash 写入成功。突然断电仍可能丢失未保存修改。</p>
+</section>
+<section id="transport">
+<h2>02 / 连接、MTU 与吞吐边界</h2>
+<table><thead><tr><th>入口</th><th>对接方式</th><th>承载内容</th></tr></thead><tbody>
+<tr><td>手机 APP：私有 BLE</td><td>Service <code>0000AE40-0000-1000-8000-00805F9B34FB</code><br>RX <code>0000AE41-0000-1000-8000-00805F9B34FB</code>：Write Without Response<br>TX <code>0000AE42-0000-1000-8000-00805F9B34FB</code>：Notify</td><td>原始 <code>F0 … F7</code> 字节流；无 BLE-MIDI 时间戳。先订阅 TX 通知。</td></tr>
+<tr><td>电脑：USB MIDI</td><td>通过操作系统 MIDI API 打开 GT1 MIDI 端点</td><td>相同 SysEx；USB MIDI 封装交给 MIDI API。USB Audio 接口不是控制端点。</td></tr>
+<tr><td>可选：BLE-MIDI</td><td>Service <code>03B80E5A-EDE8-4B33-A751-6CE34EC4C700</code><br>Characteristic <code>7772E5DB-3868-4112-A1A9-F2669D106BF3</code></td><td>标准 BLE-MIDI 封装后的 MIDI/SysEx。只用于 MIDI 客户端，不是 APP 私有 GATT 数据格式。</td></tr>
+</tbody></table>
+<p>按 UUID 发现特征，不写死 GATT handle。广播包含 BLE-MIDI 服务及 <code>sinco</code> 厂商标记；不能只过滤广播中的 AE40，否则可能漏掉设备。名称可能随配置变化，应连接后查询身份。Classic A2DP 音乐连接与 BLE 控制连接是两回事。</p>
+<h3>当前 MTU 是 200，不是 247</h3>
+<ul>
+<li>固件 <code>BLE_ATT_LOCAL_MTU=200</code>；协商到 200 后，单次 ATT 写入／通知载荷为 <strong>197 B</strong>。协商前使用 20 B 载荷。</li>
+<li>手机按其系统 API 报告的可写长度分片；不能直接拿 200 当载荷，更不能假定所有连接均已协商成功。设备日志 <code>ATT payload MTU=197</code> 打印的是载荷，不是 ATT MTU。</li>
+<li>完整控制帧最大 244 B；在 197 B 载荷下满长帧拆为 197 + 47 B。Write Without Response 的传输分片不需要逐片等待业务 ACK；保持发送顺序和系统流控，整条命令才有业务回执。</li>
+<li>设备一次整帧准入能力为 <code>min(244, 8 × 当前 ATT 载荷)</code>。默认 20 B 时为 160 B。范围 READ／通知会缩短原始数据量；按回执的 actual count 推进。</li>
+<li>一个 Notify 不一定是一条回复，一个写入也可能包含多条完整命令。每端点独立重组，以 F0 起、F7 止；超长、断线或重新连接时丢弃未完成帧。</li>
+</ul>
+<div class="notice warning"><strong>吞吐优化尚未改动：</strong>可评估把本地 MTU 上限改为 247，使已协商连接的 244 B 控制帧单包发送，但必须同时验证 SDK 缓冲、手机协商及 A2DP 共存。本文不把此建议写成已实现能力，也不承诺毫秒级传输时间。</div>
+<p>当前连接参数请求先尝试间隔 7.5～11.25 ms，备用请求 15 ms，latency=0；这些是请求值，手机可拒绝或调整。实际速度还受每连接事件可发送包数、链路数据长度、系统调度、双模共存和队列背压影响。</p>
+<p>效率原则：首次只同步当前视图；普通编辑只传变化字段；旧业务请求串行；滑杆可以合并未发送的中间值，松手后保证最终值送达。不要为每个 BLE 分片额外插入固定延时。</p>
+</section>
+<section id="wire">
+<h2>03 / 帧格式与整数编码</h2>
+<div class="notice">本文命令三元组写作 <code>component / command / selector</code>，编号用<strong>十六进制</strong>；字段偏移、字节数、范围用<strong>十进制</strong>。方括号表示 data 内字段顺序，不包含外壳。</div>
+<pre>请求：F0 00 59 device component command selector       data… XOR F7
+回复：F0 00 59 device component command selector error data… XOR F7
+请求固定开销 9 B；回复固定开销 10 B。
+XOR = 从 00（整帧下标 1）到最后一个 data 字节逐字节异或；
+回复计算范围也包含 error。排除 F0、XOR 自己和 F7。</pre>
+<p>正常 APP 使用 <code>device=01</code>。固件也接受 00／7F，回复回显请求 device。除 F0、F7 外所有字节必须小于 128。单帧最小请求 9 B、最大 244 B。旧业务 data 回复最大 64 B，但范围 READ／WRITE／NOTIFY 最大完整帧可到 244 B。</p>
+<table><thead><tr><th>类型</th><th>字节数</th><th>编码</th></tr></thead><tbody>
+<tr><td>u7</td><td>1</td><td>0～127。</td></tr>
+<tr><td>u14</td><td>2</td><td><code>b0 | (b1&lt;&lt;7)</code>，0～16383。</td></tr>
+<tr><td>s14</td><td>2</td><td>14 位二补码，−8192～8191；解码 u14 ≥8192 时减 16384。</td></tr>
+<tr><td>u16_7</td><td>3</td><td>低 7 位组在前；第三字节只能 0～3。用于逻辑偏移／完整 model_ref。</td></tr>
+<tr><td>u21</td><td>3</td><td>低 7 位组在前，0～2097151；EQ 频率使用此编码，不可截断成 u14。</td></tr>
+<tr><td>u32_7</td><td>5</td><td>低 7 位组在前，第五字节只能 0～15；revision／微秒进度。JS 不要用有符号 32 位位运算拼最高位。</td></tr>
+<tr><td>s8 / LE16 / s16LE</td><td>1 / 2 / 2</td><td>只用于<strong>解包后的原始参数库</strong>，是普通 8 位字节与小端数，不是上面的 MIDI-safe 数字编码。</td></tr>
+<tr><td>字符串</td><td>变长</td><td>普通命令名称为 ASCII，无 NUL。参数库音色名固定 17 B：最多 16 字符 + NUL，其余填零。</td></tr>
+</tbody></table>
+<h3>参数原始字节的 pack7</h3>
+<p>每组最多 7 个原始字节：先写一个 MSB 位图，再写各字节的低 7 位。位图 bit i 是该组第 i 个原始字节的 bit7；尾组未使用的位必须为 0。</p>
+<pre>raw:     00 7F 80 FF 55 AA 01 | FE
+pack7:   2C 00 7F 00 7F 55 2A 01 | 01 7E
+编码长度 = N + ceil(N / 7)。每个分片独立分组，不能跨帧延续位图。</pre>
+<p>仅参数范围协议使用 pack7。旧 GT1S／GT1B 文件 CHUNK 仍采用每字节两个 nibble（高四位在前、低四位在后）；不要把这两套载荷编码混淆。</p>
+</section>
+<section id="sync">
+<h2>04 / 首次同步、变化通知与三端协作</h2>
+<p>设备参数库是权威来源。手机与电脑各维护镜像；旋钮、按键、MIDI、手机、电脑修改均在设备 APP 单写者入口排队。revision 是运行期库级代次：实际变化后推进，同值不推进，不能当作时间戳、Flash 代次或跨重启持久编号。</p>
+<div class="flow">连接 / 开通知 → 查询身份与能力 → action 03 重新同步 → 收齐同代次 GLOB + 当前 PATCH → ACK 同版本并进入 state=3 → 编辑 / 接收增量 → 断线后重新同步</div>
+<h3>订阅控制：09 / 00 / 42</h3>
+<table><thead><tr><th>请求 data</th><th>作用</th></tr></thead><tbody>
+<tr><td><code>[01]</code></td><td>订阅／续传。正在发送不重置进度；等 ACK 时重传保留范围。仅在客户端仍保有完整镜像和接收上下文时用于恢复，不用于新客户端首次建镜像。</td></tr>
+<tr><td><code>[00]</code></td><td>取消本端订阅，不取消普通命令回执。</td></tr>
+<tr><td><code>[02, revision:u32_7]</code></td><td>确认完整接收。首次必须收齐 GLOB 和所选 PATCH 两段，不能只收完 GLOB 就 ACK。</td></tr>
+<tr><td><code>[03]</code></td><td>订阅并强制从头同步当前视图。首次连接、APP／电脑程序重新打开、镜像损坏或丢失进度均使用此动作；不隐式同步整库。</td></tr>
+</tbody></table>
+<p>控制回执 data 固定 7 B：<code>[action, state, current_revision:u32_7]</code>。state：0未订阅／1正在同步／2等待完整 ACK／3已同步。<strong>GET 42 不是订阅状态查询</strong>，不要用它代替 SET 42。</p>
+<div class="notice warning"><strong>程序重开不等于设备端断线。</strong>尤其 USB MIDI，电脑程序退出后设备可能仍保留上次订阅／增量进度。新客户端先清本地旧接收片段，发送 action 03 并核对回执，之后必须收齐新的 GLOB 和当前 PATCH；不能把旧队列尾片或一条增量误当完整快照。ACK 不是发出就算完成，需检查成功回执的 revision 及 state=3；STALE 则重新 action 03。</div>
+<h3>设备通知：09 / 7E / 42，error=0</h3>
+<table class="wire"><thead><tr><th>data 偏移</th><th>字段</th><th>长度</th></tr></thead><tbody>
+<tr><td>0</td><td>format=1</td><td>1</td></tr><tr><td>1</td><td>schema:u14</td><td>2</td></tr>
+<tr><td>3</td><td>revision:u32_7</td><td>5</td></tr><tr><td>8</td><td>本片逻辑 offset:u16_7</td><td>3</td></tr>
+<tr><td>11</td><td>本片 raw_count:u14</td><td>2</td></tr><tr><td>13</td><td>完整范围 range_start:u16_7</td><td>3</td></tr>
+<tr><td>16</td><td>完整范围 range_total:u16_7</td><td>3</td></tr><tr><td>19</td><td>pack7(raw)</td><td>raw_count + ceil(raw_count/7)</td></tr>
+</tbody></table>
+<ul>
+<li>从 offset=range_start 开始收片；其后 offset 连续，revision、range_start、range_total 一致。收齐整段后才发布该段，不能让 UI 使用半段结构。</li>
+<li>首次是 GLOB 64 B 和当前 PATCH 374 B 两个完整范围、同一 revision/schema；GLOB[0] 的 selected 必须在 0..127 且等于 PATCH 逻辑地址对应的编号。错配不得 ACK 或开放编辑。两段都齐且一致后一起确认。以 244 B 帧预算时通常为 1 + 2 条通知，但 BLE 层可能进一步拆包，不能按固定包数判断完成。</li>
+<li>首次完成后的增量按完整声明范围接收并 ACK。切音色触发当前视图重同步；重排、模型替换等以最终参数更新界面。</li>
+<li>通知会合并变化的最小／最大地址，可能包含中间未改字节，极端可接近整库。只缓存当前视图的 APP 仍须消费完整声明范围，再 ACK；视图之外的字节可以不常驻。</li>
+<li>新修改可中止正在生成的旧代次通知，并从范围起点重发。旧帧可能已在发送队列中；不得混拼两个 revision。ACK 返回 STALE 时重新同步。</li>
+<li>断线后丢弃未完成事务、旧回执、通知片段，重新读取设备；不要自动把手机离线旧镜像覆盖设备。</li>
+</ul>
+<h3>最小客户端状态机</h3>
+<pre>DISCONNECTED
+  connect + enable Notify; clear local fragments
+  send SUBSCRIBE(action=03); validate response
+SYNCING
+  accept complete, validated notification ranges of one revision
+  initial: need BOTH globals and patch(selected)
+  require globals[0] == (patch.range_start - 64) / 374
+  send ACK(revision)
+  require error=0, state=3 and matching revision; publish ready mirror
+READY
+  local UI edit -> request queue -> WRITE / action
+  notification -> update mirror only; never echo WRITE
+  STALE / broken fragment sequence -> SYNCING (action 03)
+  disconnect -> discard session -> DISCONNECTED</pre>
+<p>建议使用一个主机请求队列；业务回执和 <code>7E</code> 通知先分流。不要在等待普通回复时忽略通知。参数订阅只负责可保存偏好；播放进度、调音结果、实时链接状态走各自 GET，不在 47,936 B 参数区。</p>
+</section>
+<section id="read">
+<h2>05 / 范围 READ</h2>
+<p><code>09 / 01 / 40</code>，无 data 时查询能力；有 data 时读取范围。</p>
+<table class="wire"><thead><tr><th>请求 data 偏移</th><th>字段</th><th>长度 / 限制</th></tr></thead><tbody>
+<tr><td>0</td><td>expected_revision:u32_7</td><td>5；0 表示接受执行时版本，仅适合初次／独立读取</td></tr>
+<tr><td>5</td><td>logical_offset:u16_7</td><td>3；0～47935</td></tr>
+<tr><td>8</td><td>raw_count:u14</td><td>2；1～193，且不能越过逻辑库结尾</td></tr>
+</tbody></table>
+<p>成功回执前 13 B 为统一头：<code>[format=1, schema:u14, revision:u32_7, offset:u16_7, count:u14]</code>。</p>
+<ul>
+<li><strong>能力查询：</strong>只有 13 B 头，offset 字段表示总大小 47936，count 字段表示当前链路最大 raw count；后面没有原始数据。</li>
+<li><strong>范围查询：</strong>头之后紧接 pack7(raw)。回执 count 是实际数量，允许比请求少，下一次 offset += actual_count。MTU 上限协商成功时最多 193 原始字节；默认 20 B ATT 载荷时最多 119。</li>
+<li><strong>STALE：</strong>error=8，头包含最新 revision、原请求 offset、count=0。丢弃尚未拼完的旧快照，从新 revision 重读。</li>
+<li>完整多片读取：第一片可以 expected=0，其后锁定返回的非零 revision。不能每片都用 0 然后声称数据一致。</li>
+</ul>
+<pre>GLOB:       [0, 64)
+PATCH i:    [64 + 374*i, 64 + 374*(i+1))，i=0..127
+示例 01A：  i=0，起点 64
+示例 05C：  i=(5-1)*4+2=18，起点 6796
+完整库：    [0, 47936)</pre>
+<p>READ 可以跨记录；WRITE 不能跨记录。这是显式编码的逻辑空间，<strong>不是设备 PSRAM 物理地址，也不是 sizeof(C struct)</strong>。</p>
+</section>
+<section id="write">
+<h2>06 / 原子分包 WRITE</h2>
+<p><code>09 / 00 / 41</code>。小字段一条命令即可提交；大字段按帧长分片，最后一片到齐自动提交，<strong>没有额外 BEGIN / COMMIT 往返</strong>。</p>
+<table class="wire"><thead><tr><th>请求 data 偏移</th><th>字段</th><th>长度 / 限制</th></tr></thead><tbody>
+<tr><td>0</td><td>expected_revision:u32_7</td><td>5；必须是镜像的非零代次</td></tr>
+<tr><td>5</td><td>request_id:u14</td><td>2；1～16383，同一事务各片相同</td></tr>
+<tr><td>7</td><td>logical_offset:u16_7</td><td>3；整个事务起点，不随片变化</td></tr>
+<tr><td>10</td><td>total_raw_bytes:u14</td><td>2；1～374，必须完全落在一个 GLOB 或 PATCH 内</td></tr>
+<tr><td>12</td><td>fragment_offset:u14</td><td>2；相对事务起点，第一片为0</td></tr>
+<tr><td>14</td><td>raw_count:u14</td><td>2；本片1～191，不能越过total</td></tr>
+<tr><td>16</td><td>pack7(raw)</td><td>按本片raw_count计算；最大完整请求244 B</td></tr>
+</tbody></table>
+<p>事务按顺序追加；已收区域内字节完全相同的重复片允许，不接受空洞或内容冲突。整个 WRITE 的起点和终点必须是完整字段边界，但传输分片可以穿过一个 LE16 字段。</p>
+<p>全设备共享一个分片写工作区，绑定来源、连接、request_id、expected_revision。有效活动空闲超时 30 秒；断线、取消、STALE 都不能把半份数据发布。上传期间设备本地操作可以继续，发生真实修改后旧 WRITE 会被拒绝，不是长时间锁住旋钮或音频。</p>
+<h3>回执：不要只看 error=0</h3>
+<table class="wire"><thead><tr><th>data 偏移</th><th>字段</th><th>说明</th></tr></thead><tbody>
+<tr><td>0～12</td><td>统一 READ 头</td><td>revision、事务起点、实际回读 count</td></tr>
+<tr><td>13</td><td>request_id:u14</td><td>2 B</td></tr><tr><td>15</td><td>state</td><td>0收片中；1已提交；2已提交但静音；3已拒绝</td></tr>
+<tr><td>16</td><td>filled:u14</td><td>2 B，累计已收原始长度</td></tr><tr><td>18</td><td>total:u14</td><td>2 B</td></tr>
+<tr><td>20</td><td>pack7(actual_raw)</td><td>可为空；只包含有界回读前缀，不保证整个 WRITE</td></tr>
+</tbody></table>
+<div class="notice warning"><strong>state=0：</strong>仅表示片段收到，正式参数未变化。<br><strong>state=1：</strong>提交完成，同值也可成功但 revision 不变。<br><strong>state=2：</strong>error仍为0，参数已提交但恢复声音失败，必须提示并重同步，不能当作未执行而重复结构操作。</div>
+<ul>
+<li>实际回读来自正式参数，不是请求原样回显。归一化、模式切换、BPM 联动等可能改变其他字段；通过通知或 READ 补齐。</li>
+<li>244 B 帧回执最多携带 187 原始字节前缀；缓存终态遇到后续版本变化可能 count=0，只保留结果，不伪造旧实际值。</li>
+<li>STALE 回执可能只有 13 B 统一头；其他错误可以 data 为空。必须先按 error 和长度判断，不能无条件读满20 B。</li>
+<li>同一请求完全相同的重传可以命中一个有界终态缓存，不重新应用。它不是无限历史或跨连接幂等机制。新事务使用新ID；重连不重发旧请求。</li>
+<li>取消未完成写入：<code>09 / 07 / 41 : [request_id:u14]</code>，只允许当前所属会话，成功 data 为空；不能撤销已提交结果。</li>
+</ul>
+<p><strong>推荐使用边界：</strong>普通音量／名称／参数用范围写；选 TYPE、装模型、删除 UNIT 等优先用业务命令，避免 APP 猜测默认参数、CPU 分配和资源约束。业务命令无 revision 前置条件；若需要比较代次后原子修改，应使用范围 WRITE。</p>
+</section>
+<section id="globals">
+<h2>07 / GLOB 原始布局 · 64 B</h2>
+<p>下表是 pack7 解码后的字节；起点为逻辑0。bool只允许0/1，保留字节保持0。设置成功后以实际回读为准。</p>
+<table class="wire"><thead><tr><th>偏移</th><th>字段 / 类型</th><th>取值与含义</th></tr></thead><tbody>
+<tr><td>0</td><td>selected / u8</td><td>0～127；界面BANK01～32、字母ABCD。i=(BANK−1)×4+字母索引。</td></tr>
+<tr><td>1</td><td>output_route / u8</td><td>0 Normal；1 Dry；2 NoCAB。输出路由，不是USB录音模式。</td></tr>
+<tr><td>2</td><td>looper_position / u8</td><td>0 HEAD；1 TAIL。</td></tr>
+<tr><td>3</td><td>usb_record_mix / bool</td><td>USB录音是否混入伴奏，需与录音模式结合。</td></tr>
+<tr><td>4</td><td>accompaniment_volume / u8</td><td>0～127。</td></tr>
+<tr><td>5</td><td>drum_volume / u8</td><td>0～100。</td></tr>
+<tr><td>6 / 7</td><td>looper_record_volume / playback_volume</td><td>各u8，0～100。</td></tr>
+<tr><td>8</td><td>midi_channel / u8</td><td>1～16；不是线上的0～15。</td></tr>
+<tr><td>9</td><td>looper_stop_at_end / bool</td><td>按循环末尾停止偏好。</td></tr>
+<tr><td>10</td><td>looper_drum_sync / u8</td><td>0关闭；1启动同步；2启停同步。</td></tr>
+<tr><td>11</td><td>drum_load_pattern_tempo / bool</td><td>鼓型载入时采用其速度。</td></tr>
+<tr><td>12 / 14</td><td>global_bpm / drum_bpm / LE16</td><td>各2 B，40～240 BPM。</td></tr>
+<tr><td>16 / 17</td><td>global_bpm_sync / drum_bpm_sync</td><td>各bool。</td></tr>
+<tr><td>18 / 20</td><td>drum_pattern / looper_drum_pattern / LE16</td><td>source&lt;&lt;12 | index；source 0 STYLE / 1 USER。只能选实际安装目录中的项目。</td></tr>
+<tr><td>22～31</td><td>reserved</td><td>10 B，全部0。</td></tr>
+<tr><td>32 / 33</td><td>eq_enabled / reserved</td><td>bool / 0。</td></tr>
+<tr><td>34 / 36</td><td>eq_lowcut / highcut / LE16</td><td>lowcut19～200 Hz（19=关闭）；highcut4000～20500 Hz（&gt;20000=关闭）。</td></tr>
+<tr><td>38 + 4×i</td><td>4个EQ峰值段，i=0..3</td><td>+0 gain:s8 −18～18 dB；+1 frequency:LE16 20～20000 Hz；+3 Q:u8 1～160，实际Q=值÷10。</td></tr>
+<tr><td>54</td><td>drum_space_amount / u8</td><td>整组鼓空间效果，0～100。</td></tr>
+<tr><td>55 / 56</td><td>looper_auto_mode / threshold</td><td>mode0关／1一次／2持续；threshold0～100。灵敏度HIGH/MID/LOW可映射0/50/100，不是mode。</td></tr>
+<tr><td>57 / 58</td><td>looper_record_bars / meter</td><td>bars0手动、1～16定长；meter0=4/4、1=3/4、2=2/4、3=6/8。</td></tr>
+<tr><td>59</td><td>looper_countin / bool</td><td>手动首录一小节预备拍。</td></tr>
+<tr><td>60</td><td>tuner_reference_offset / s8</td><td>−10～10 Hz；实际A4=440+offset。</td></tr>
+<tr><td>61</td><td>usb_record_volume / u8</td><td>0～100，默认100，独立于最终耳机总音量。</td></tr>
+<tr><td>62</td><td>autooff_enabled / bool</td><td>默认关；开启后固定15分钟无活动，走正常软关机。</td></tr>
+<tr><td>63</td><td>usb_record_mode / u8</td><td>0普通；1关闭录音输出；2USB重放处理/Reamp；3原始吉他Dry。</td></tr>
+</tbody></table>
+<p>不能从 LE16 的第二字节开始或结束一次逻辑 WRITE：禁止边界13、15、19、21、35、37、40、44、48、52。全局组合写仍会验证整份候选及业务条件；忙时不允许先应用其中一部分。</p>
+</section>
+<section id="patch">
+<h2>08 / PATCH 原始布局 · 374 B</h2>
+<p>音色i的逻辑起点为 <code>64+374*i</code>，下表偏移均相对此起点。最多10个UNIT，同TYPE可以重复，不能以TYPE作为实例唯一ID。</p>
+<h3>UNIT：10 × 32 B，unit_id=0..9</h3>
+<table class="wire"><thead><tr><th>UNIT内偏移</th><th>字段</th><th>类型 / 规则</th></tr></thead><tbody>
+<tr><td>0</td><td>type</td><td>LE16；完整TYPE，勿截成单字节。</td></tr>
+<tr><td>2</td><td>enabled</td><td>bool。</td></tr><tr><td>3</td><td>processor</td><td>0/1，受设备执行和资源约束，不建议APP自行改。</td></tr>
+<tr><td>4</td><td>clear_on_bypass</td><td>0 KEEP，1 CLEAR；支持能力从TYPE目录查询。</td></tr>
+<tr><td>5</td><td>parameter_count</td><td>0～12，必须符合该TYPE的规范schema，不是当前页面可见参数数。</td></tr>
+<tr><td>6 + 2×p</td><td>parameters[p]</td><td>12个s16LE；未使用项为0。</td></tr>
+<tr><td>30</td><td>model_ref</td><td>LE16；普通算法0，模型类使用已安装且TYPE匹配的资源。</td></tr>
+</tbody></table>
+<h3>音色其余字段</h3>
+<table class="wire"><thead><tr><th>偏移</th><th>字段</th><th>格式 / 规则</th></tr></thead><tbody>
+<tr><td>320～329</td><td>chain[10]</td><td>前unit_count项是0..unit_count−1的排列，表示执行顺序；后面为0。整体10 B字段。</td></tr>
+<tr><td>330</td><td>tempo</td><td>LE16，40～240 BPM。</td></tr>
+<tr><td>332～348</td><td>name</td><td>固定17 B：最多16个ASCII字符、NUL、零填充。逻辑范围写需写整个17 B字段。</td></tr>
+<tr><td>349</td><td>unit_count</td><td>0～10；未使用UNIT记录全部0。</td></tr>
+<tr><td>350</td><td>input_volume</td><td>u8，0～30；实际增益 = raw−15 dB，15为0 dB。吉他进入效果链前的电平。</td></tr>
+<tr><td>351</td><td>output_volume</td><td>u8，0～100；最终耳机总混音音量，100为满量程控制值，0静音；不是0～100 dB。</td></tr>
+<tr><td>352～361 / 362～371</td><td>knob[0] / knob[1]</td><td>每个10 B，见下表。</td></tr>
+<tr><td>372</td><td>pan</td><td>s16LE，−100～100，0居中。</td></tr>
+</tbody></table>
+<table class="wire"><thead><tr><th>旋钮内偏移</th><th>字段</th><th>格式</th></tr></thead><tbody>
+<tr><td>0 / 2 / 4</td><td>type / min / max</td><td>LE16 / s16LE / s16LE。</td></tr>
+<tr><td>6</td><td>target</td><td>0 NONE；1 INPUT；2 OUTPUT；3 UNIT_PARAMETER。</td></tr>
+<tr><td>7 / 8 / 9</td><td>unit / parameter / enabled</td><td>u8 / u8 / bool；与target、TYPE及有效范围一致。</td></tr>
+</tbody></table>
+<ul>
+<li>默认旋钮分别为 INPUT、OUTPUT，绑定和自定义范围随音色保存。手机改值后，物理旋钮有有效移动才重新接管，不应在收到通知后由手机把旧旋钮值写回。</li>
+<li>开关／参数／重排保留实例；TYPE／模型／切音色按既有快速fade和整池重建处理。KEEP表示保留历史，不承诺旁路时持续计算或自然拖尾。</li>
+<li>UNIT ID不等于链中的位置。换位置不改ID；删除会压缩ID，必须重新读取链、参数地址和旋钮绑定，不能再发删除前的缓存地址。</li>
+<li>完整参数可以READ，但不要凭374 B格式随意拼一个新TYPE：参数数、默认值、模式依赖、CPU1资源等都由设备schema校验。</li>
+</ul>
+</section>
+<section id="commands">
+<h2>09 / APP 页面命令速查</h2>
+<p>每行编号均为 <code>component / command / selector</code>（十六进制）。除专门注明外，成功SET／动作的data为空；失败看error。旧业务命令没有request_id，不做跨命令原子事务。参数修改后以通知或GET刷新。</p>
+<table><thead><tr><th>组件</th><th>编号</th><th>常用command</th></tr></thead><tbody>
+<tr><td>PRESET / UNIT / PARAMETER</td><td>00 / 01 / 02</td><td rowspan="4">00 SET；01 GET；02 TOGGLE；03 ON；04 OFF；05 INC；06 DEC；07 RESET；08 SAVE；0A COPY；0B DELETE；0C MOVE；10 RELATIVE；11 ABSOLUTE。<br>不是每个组件都支持全部动作；以下只列当前有实现的组合。</td></tr>
+<tr><td>DRUM / LOOPER / TUNER</td><td>03 / 04 / 05</td></tr>
+<tr><td>GLOBAL / EQ / HARDWARE</td><td>06 / 07 / 08</td></tr>
+<tr><td>SYSTEM</td><td>09</td></tr>
+</tbody></table>
+<h3>音色 / BANK</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>回执data / 语义</th></tr></thead><tbody>
+<tr><td>00 / 01 / 7F</td><td>空</td><td><code>[0,0,id:u14,output,tempo:u14,0,0,0,input,bank,letter]</code>，13 B。</td></tr>
+<tr><td>00 / 00 / 00</td><td><code>[id]</code></td><td>选择完整音色，id0～127。</td></tr>
+<tr><td>00 / 00 / 20</td><td><code>[bank]</code></td><td>bank0～31，保留ABCD位置。例如02C切BANK05进入05C。</td></tr>
+<tr><td>00 / 00 / 01</td><td>0～16 B ASCII名称</td><td>改当前音色名；GET01返回名称，无NUL。</td></tr>
+<tr><td>00 / 00 / 03、04、21</td><td>分别<code>[output]</code>、<code>[tempo:u14]</code>、<code>[input]</code></td><td>输出0～100；BPM40～240；输入0～30。</td></tr>
+<tr><td>00 / 00或01 / 22</td><td>SET <code>[pan:s14]</code>；GET空</td><td>GET返回pan:s14；−100～100。</td></tr>
+<tr><td>00 / 0A / 00</td><td><code>[src,dst]</code></td><td>复制音色。目标被替换，注意确认。</td></tr>
+<tr><td>00 / 0C / 00</td><td><code>[first,second]</code></td><td><strong>交换</strong>两个地址内容，不是插入移动；当前选择跟随音色内容。超时勿盲重发。</td></tr>
+<tr><td>00 / 07 / 00</td><td><code>[id]</code></td><td>重置该地址音色，不删除128个地址中的位置。</td></tr>
+<tr><td>00 / 08 / 00</td><td>空</td><td><code>[1]</code>：RAM中已有编辑、等待软关机保存，非Flash确认。</td></tr>
+<tr><td>00 / 01 / 23</td><td>空 / <code>[start,count]</code></td><td>空返回<code>[1,32,4,16,3]</code>。分页count1～3，返回<code>[1,start,returned,current,(flags,name_len,name…)*returned]</code>；flags bit0=未持久化。</td></tr>
+</tbody></table>
+<h3>UNIT 和参数</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>说明</th></tr></thead><tbody>
+<tr><td>01 / 01 / 7F</td><td>空</td><td><code>[count,(unit,enabled,type:u14)*count]</code>，按链顺序返回。</td></tr>
+<tr><td>01 / 01 / 00</td><td><code>[unit]</code></td><td><code>[unit,enabled,type:u14,parameter_count]</code>，5 B。</td></tr>
+<tr><td>01 / 00 / 01</td><td><code>[unit,type:u14]</code></td><td>替换TYPE；unit等于unit_count时追加，不允许空洞。成功后重新读取实际默认参数。</td></tr>
+<tr><td>01 / 03或04或02 / 00</td><td><code>[unit]</code></td><td>打开／关闭／翻转；显式ON/OFF比TOGGLE更易恢复。</td></tr>
+<tr><td>01 / 00 / 02</td><td><code>[unit,destination_position]</code></td><td>与目标位置<strong>交换</strong>，不释放实例。插入式拖拽可用完整chain范围WRITE表达。</td></tr>
+<tr><td>01 / 0B / 00</td><td><code>[unit]</code></td><td>删除并压缩ID。error=1且data=[1]为“已提交但静音”，不能重复删除下一个UNIT。</td></tr>
+<tr><td>01 / 00或01 / 24</td><td>SET <code>[unit,clear]</code>；GET <code>[unit]</code></td><td>GET返回<code>[unit,clear]</code>；0 KEEP / 1 CLEAR。</td></tr>
+<tr><td>02 / 00或11 / 00</td><td><code>[unit,type:u14,param,value:s14]</code></td><td>绝对参数，6 B；完整TYPE必须匹配。</td></tr>
+<tr><td>02 / 10 / 00</td><td><code>[unit,type:u14,param,delta:s14]</code></td><td>相对修改，非幂等。</td></tr>
+<tr><td>02 / 05或06或07 / 00</td><td><code>[unit,type:u14,param]</code></td><td>增加1／减少1／恢复schema默认。</td></tr>
+<tr><td>02 / 01 / 00</td><td><code>[unit,type:u14,param]</code></td><td><code>[unit,type:u14,param,value:s14]</code>，6 B。</td></tr>
+<tr><td>02 / 01 / 01</td><td><code>[unit,type:u14]</code></td><td><code>[unit,type:u14,count,values:s14*count]</code>。元数据另见下一节。</td></tr>
+</tbody></table>
+<h3>全局 / EQ / 硬件映射</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>回执 / 说明</th></tr></thead><tbody>
+<tr><td>06 / 01 / 20</td><td>空</td><td><code>[1,accompaniment,bpm:u14,route,record_mix,midi_channel,bpm_sync]</code>，8 B。</td></tr>
+<tr><td>06 / 00 / 01、03、04、05、06、07</td><td>分别伴奏u7、BPM:u14、同步bool、通道u7、录音混伴奏bool、route u7</td><td>范围同GLOB；06和0E都控制录音伴奏开关。</td></tr>
+<tr><td>06 / 00 / 0A</td><td><code>[volume]</code></td><td>USB录音电平0～100。读取用<code>06/01/21</code>→<code>[1,volume]</code>；旧GET0A不是该单值查询。</td></tr>
+<tr><td>06 / 00或01 / 22</td><td>SET <code>[mode]</code>；GET空</td><td>USB录音模式，GET <code>[1,mode]</code>，0正常／1关闭／2Reamp／3Dry。</td></tr>
+<tr><td>07 / 01或00 / 20</td><td>GET空；SET为35 B整组</td><td><code>[enabled,lowcut:u21,highcut:u21,(gain:s14,freq:u21,Q:u14)*4]</code>。GET同布局，频率单位Hz，Q值÷10。</td></tr>
+<tr><td>07 / 03或04或02或07 / 00</td><td>空</td><td>EQ开启／关闭／翻转／默认。默认cuts19/20500，四频点100/750/1600/4000，gain0，Q7。</td></tr>
+<tr><td>08 / 00 / 20</td><td><code>[knob,target,unit,type:u14,param,min:s14,max:s14,enabled]</code></td><td>11 B完整旋钮映射，knob0/1；此布局不同于原始10 B结构。</td></tr>
+<tr><td>08 / 01 / 20</td><td><code>[knob]</code></td><td>返回上述11 B映射。普通APP无需模拟原始GPIO／旋钮ADC事件。</td></tr>
+</tbody></table>
+<h3>鼓机</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>回执 / 说明</th></tr></thead><tbody>
+<tr><td>03 / 01 / 00</td><td>空</td><td><code>[state,volume,bpm:u14,pattern:u14,bpm_sync]</code>，7 B。</td></tr>
+<tr><td>03 / 03或04或02 / 00</td><td>空</td><td>播放／停止／翻转，状态由后台实际执行。</td></tr>
+<tr><td>03 / 00 / 01、02、03、04、05</td><td>分别volume u7、BPM:u14、pattern:u14、sync bool、space u7</td><td>空间0～100，整组鼓共用。GET05返回一字节space。</td></tr>
+<tr><td>03 / 01 / 20</td><td>空 / <code>[pattern:u14]</code></td><td>空返回<code>[1,style_count:u14,user_count:u14,max_name_bytes=16]</code>；单项返回<code>[1,pattern:u14,category:u16_7,name_len,name_nibbles…]</code>。</td></tr>
+</tbody></table>
+<p>pattern编码为 <code>(source&lt;&lt;12)|index</code>，source0=STYLE、1=USER，index从0起。只展示实际安装目录；目录为空不代表APP应伪造可用鼓型。名称nibble解码得到原始字节，不自动假定UTF-8资源已存在。</p>
+<h3>Looper</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>回执 / 说明</th></tr></thead><tbody>
+<tr><td>04 / 01 / 00</td><td>空</td><td><code>[state,play_vol,record_vol,0,position,drum_sync,stop_at_end,has_overdub]</code>，8 B。</td></tr>
+<tr><td>04 / 12、13、14、15、16 / 00</td><td>空</td><td>分别PLAY、STOP、RECORD、CLEAR、UNDO。07/00是CLEAR别名；UNDO可再次恢复，非幂等。</td></tr>
+<tr><td>04 / 00 / 01、02、04、05、20</td><td>分别playvol、recvol、position、drumsync、stop_at_end</td><td>范围同GLOB。兼容TOGGLE02含义为录音时STOP，否则PLAY，不是播放暂停翻转。</td></tr>
+<tr><td>04 / 01 / 21</td><td>空</td><td>进度24 B：<code>[1,state,flags,pending,generation:u32_7,current_us:u32_7,total_us:u32_7,limit_us:u32_7]</code>。</td></tr>
+<tr><td>04 / 00或01 / 22</td><td>SET <code>[mode,threshold]</code>；GET空</td><td>GET <code>[1,mode,threshold]</code>。自动录音mode0/1/2。</td></tr>
+<tr><td>04 / 00或01 / 23</td><td>SET <code>[bars,meter]</code>；GET空</td><td>GET <code>[1,bars,meter,effective_limit_us:u32_7]</code>，8 B。</td></tr>
+<tr><td>04 / 00或01 / 24</td><td>SET <code>[countin_enabled]</code>；GET空</td><td>GET <code>[1,enabled,remaining_us:u32_7]</code>，7 B。</td></tr>
+</tbody></table>
+<p>state：0停止、1播放、2录音。进度flags：bit0有已编码内容、bit1可撤销、bit2叠录、bit3收尾中、bit4录音被禁止、bit5 HOLD、bit6预备拍。generation是Looper运行代次，<strong>不是参数库revision</strong>。</p>
+<p>动作成功只代表进入后台队列；轮询进度确认完成，不能把ACK当成该采样点开始出声。定长设置要求停止且无待执行操作；首录冻结长度，6/8按3个四分音符/小节计算，向上对齐4 ms并受30秒上限约束。APP展示GET返回的实际时长。进度查询不推进音频时钟。</p>
+<h3>调音器 / 设备信息</h3>
+<table><thead><tr><th>命令</th><th>请求data</th><th>回执 / 说明</th></tr></thead><tbody>
+<tr><td>05 / 03或04或02 / 00</td><td>空</td><td>进入／退出／翻转调音模式；录音冲突时可被拒绝。</td></tr>
+<tr><td>05 / 00 / 01</td><td><code>[A4_Hz:u14]</code></td><td>430～450 Hz。</td></tr>
+<tr><td>05 / 01 / 00</td><td>空</td><td><code>[reference_offset:s14,note:u14,cent_raw:u14]</code>，6 B。note0..11=A,A#,B,C,C#,D,D#,E,F,F#,G,G#；无有效音高时note=255、cent_raw=128。</td></tr>
+<tr><td>09 / 01 / 00</td><td>空</td><td><code>[mode,protocol=1,sample_rate_kHz=48,block_samples=64]</code>。正常PLAY=0、TUNER=4，其他模式为兼容UI词汇，不是电源状态。</td></tr>
+<tr><td>09 / 01 / 20</td><td>空</td><td><code>[1,flags]</code>：BLE bit0、Classic ACL bit1、A2DP bit2、AVRCP bit3。链接存在不等于正在播放。</td></tr>
+<tr><td>09 / 00或01 / 21</td><td>SET <code>[enabled]</code>；GET空</td><td>GET <code>[1,enabled,15]</code>；默认关闭，开启后15分钟无活动软关机。</td></tr>
+<tr><td>09 / 01 / 22</td><td>空</td><td>身份26 B，见下面。</td></tr>
+</tbody></table>
+<p>cent_raw是MK300兼容指针标度0～256、中心128，<strong>不是直接以cent为单位的有符号整数</strong>。首版UI按指针标度显示，不把“128”显示为+128音分；无音高时显示“—”。当前命令没有八度／Hz测量字段。调音算法后续评估不改变本次文档为当前实现快照的性质。</p>
+<pre>身份 data（26 B）
+0 format=1；1 device=1；2 protocol=1
+3 major:u14；5 minor:u14；7 patch:u14
+9 flags：bit0 dev，bit1 debug
+10 banks=32；11 presets_per_bank=4；12 units=10
+13 schema:u14 (=12)
+15 model_name_len=3；16 platform_name_len=6
+17..19 ASCII "GT1"；20..25 ASCII "AC703N"
+本次源码版本 0.2.117-dev；运行时以实际GET结果为准，不读SDK版本串代替。</pre>
+</section>
+<section id="metadata">
+<h2>10 / 效果、模型与参数显示</h2>
+<p>不要把MK300的“分类单实例”UI直接当GT1寻址规则。GT1用10个UNIT；TYPE可重复，资源model_ref、TYPE、UNIT ID、链位置是四个不同概念。</p>
+<table><thead><tr><th>查询 / 设置</th><th>data</th><th>成功返回</th></tr></thead><tbody>
+<tr><td>01 / 01 / 22</td><td>空；或<code>[catalogue_index:u14]</code></td><td>空→TYPE总数:u14；单项→<code>[index:u14,type:u14,channel_layout,count,flags,ASCII_name…]</code>。layout0单声道1立体声；flags bit0模型类、bit1仅CPU1、bit2支持reset。</td></tr>
+<tr><td>01 / 01 / 20</td><td>空；或<code>[index:u16_7]</code></td><td>空→已安装资源数:u16_7；单项→<code>[index:u16_7,model_ref:u16_7,type:u14,format,display_count,name…]</code>，名称最多14 B。</td></tr>
+<tr><td>01 / 00 / 21</td><td><code>[unit,type:u14,model_ref:u16_7]</code></td><td>原子选择TYPE和资源，6 B；资源存在、格式、TYPE、CPU约束须匹配。</td></tr>
+<tr><td>01 / 01 / 21</td><td><code>[unit]</code></td><td><code>[unit,type:u14,model_ref:u16_7,processor]</code>，7 B。</td></tr>
+<tr><td>02 / 01 / 20</td><td><code>[unit,type:u14]</code></td><td><code>[unit,type:u14,display_count]</code>；可见数可能小于规范参数数。</td></tr>
+<tr><td>02 / 01 / 21</td><td><code>[unit,type:u14,param]</code></td><td><code>[unit,type:u14,param,ASCII_display_value…]</code>；当前值的格式化标签。</td></tr>
+<tr><td>02 / 01 / 22</td><td>同上</td><td><code>[unit,type:u14,param,ASCII_parameter_name…]</code>。</td></tr>
+<tr><td>02 / 01 / 23</td><td>同上</td><td><code>[unit,type:u14,param,kind,min:s14,max:s14]</code>，9 B；范围会随当前模式／Sync变化。</td></tr>
+</tbody></table>
+<ul>
+<li>不要硬编码TYPE／模型总数；安装资源不同，目录可不同。数量为0时显示无资源，不能直接调用不存在的模型。</li>
+<li>kind沿用MK300参数schema的呈现类型，不等于Hz、dB等物理单位。通用编辑器先用整数范围与设备返回的显示标签；美术旋钮、枚举中文名和特殊曲线需要按TYPE schema配置。</li>
+<li>格式化标签未实现可返回error6，此时显示原始值，不假定所有参数已有完整中文／单位／枚举目录接口。</li>
+<li>例如Whammy规范参数仍为Mode/Bend/Mix三项，模式变化时页面可见数为3或2；不能删除隐藏参数。模型类也可能显示5项但保存8项。</li>
+<li>TYPE选择、Mode或Sync变化后，刷新该UNIT规范参数、可见数、范围与标签。不能沿用旧范围发送拖动队列。</li>
+<li>本接口只列出与选择已安装资源，<strong>没有模型／IR／鼓音源上传协议</strong>。云端资源管理不能用参数WRITE代替。</li>
+</ul>
+<h3>通用参数页可以直接实现的规则</h3>
+<ol>
+<li>读取当前 UNIT 的 TYPE 和规范参数，再查询可见数、参数名称与当前模式下的范围。值和范围均以设备为准，隐藏参数仍保留在镜像。</li>
+<li>请求 GET21 显示标签；成功就展示设备文字，error6 则展示原始整数。名称中的换行可作为布局提示，不能把 kind 编号当成 dB／Hz，或给所有 0～100 参数统一添上百分号。</li>
+<li>例如 Flanger（TYPE <code>0x0702</code>）：Sync=0 时 Rate 范围为1～100；Sync=1 时变成0～12的节拍档位，BPM范围40～240。切换后重新读参数／范围／标签，取消尚未发送的旧 Rate 拖动值；不要自行把旧整数换算成频率。</li>
+<li>参数页未打开时不轮询这些只读描述；当前 TYPE／模型／Mode／Sync 改变后再失效对应缓存。GLOB 与 PATCH 中已明确单位的字段按本文显示，例如 INPUT 为整数 dB，不能据此类推效果内部 Gain。</li>
+</ol>
+<p><strong>资源边界：</strong>10个UNIT是控制／音色容量，不等于10个任意重型效果都能同时运行。目前 <code>PRODUCT_CPU1_STAGE_COUNT=3</code>；标记“仅CPU1”的有效实例超过槽位会被拒绝，不自动降到CPU0。APP保留最后成功镜像并报告设备应用失败，不能在设备拒绝后仍显示新链已生效。</p>
+</section>
+<section id="files">
+<h2>11 / 参数文件导入、导出与恢复默认</h2>
+<p>文件与日常参数同步不同。APP可先把文件当不透明二进制保存／转发，导入原文件交设备校验。文件不含Looper录音、模型／IR、鼓音源、SDK密钥或校准。</p>
+<table><thead><tr><th>对象</th><th>当前格式</th><th>大小与校验</th></tr></thead><tbody>
+<tr><td>单音色 GT1S</td><td>magic4 + version LE16=2 + payload_size LE16=374 + PATCH + CRC32</td><td>386 B，CRC32覆盖前382 B。兼容v1的384 B文件，PAN默认为居中。</td></tr>
+<tr><td>完整配置 GT1B</td><td>16 B头 + GLOB64 + 128×PATCH374 + CRC32</td><td>47956 B，当前file_version=1 / schema=12；CRC32覆盖最后4 B之前全部内容。</td></tr>
+</tbody></table>
+<p>CRC为源码所用标准反射CRC32（多项式0xEDB88320，初值0xFFFFFFFF、结果异或0xFFFFFFFF），尾部LE32。不要导入Flash原始镜像GT1P；该内部格式不等于便携GT1B文件。</p>
+<h3>完整配置：PRESET 00，selectors 34～37</h3>
+<table><thead><tr><th>操作</th><th>请求data</th><th>回复data</th></tr></thead><tbody>
+<tr><td>GET34：开始导出<br>SET34：开始导入<br>RESET34：准备恢复默认</td><td>导出／导入空；默认<code>[01]</code></td><td><code>[1,ticket:u14,file_bytes:u16_7,chunk_max=28]</code>，7 B。BEGIN本身不改参数。</td></tr>
+<tr><td>GET35：取导出块</td><td><code>[ticket:u14,offset:u16_7,count]</code></td><td>相同6 B前缀 + <code>count×2</code> nibble字节。</td></tr>
+<tr><td>SET35：上传导入块</td><td>相同6 B前缀 + nibble字节</td><td><code>[ticket:u14,filled:u16_7]</code>，5 B。</td></tr>
+<tr><td>GET36：会话状态</td><td>空</td><td><code>[1,mode,ticket:u14,progress:u16_7]</code>，7 B。mode0无会话1导出2导入3默认。</td></tr>
+<tr><td>SAVE36：提交导入／默认</td><td><code>[ticket:u14]</code></td><td><code>[1,selected,committed_muted]</code>，3 B；第三项1表示已提交但静音。导出无需此提交。</td></tr>
+<tr><td>RESET37：取消／结束会话</td><td><code>[ticket:u14]</code></td><td>空。导出取完后也应结束会话。</td></tr>
+</tbody></table>
+<p>count为1～28，导入按连续offset追加，完全相同的已收片可重传。30秒有效活动空闲超时。整库导入只有全部收齐并通过版本、字段、CRC和应用校验后才发布；接收期间现有参数不变。成功后重新同步当前视图和列表。</p>
+<div class="notice warning">GT1B导出不是固定副本。导出过程中发生真实参数修改，后续GET35／GET36可返回STALE=8并作废票据；丢弃不完整文件，从GET34重来。不要拼接不同代次的数据。导入提交、恢复默认、复制和交换均需要APP用户明确操作。</div>
+<h3>单音色：PRESET 00，selectors 30～33</h3>
+<p>GET30／SET30请求 <code>[preset_id]</code>，回复 <code>[1,ticket:u14,id,file_bytes:u14,chunk_max=28]</code>。GET31／SET31块前缀为 <code>[ticket:u14,offset:u14,count]</code>（5 B），原始文件字节仍按nibble编码。写块回执 <code>[ticket:u14,filled:u14]</code>（4 B）。</p>
+<p>GET32空请求状态：<code>[1,mode,ticket:u14,id,progress:u14]</code>。SAVE32带ticket提交导入，成功 <code>[1,id,committed_muted]</code>；RESET33带ticket取消／结束。单音色导出在BEGIN时快照该音色；不同于GT1B流式导出的STALE规则。</p>
+<p>所有这些“提交”只提交规范RAM，不是立即写Flash。文件会话、范围分片写等共享有界工作区／产品门禁，应串行处理；忙／冲突按实际错误返回恢复，不再额外开一套并行上传逻辑。</p>
+</section>
+<section id="midi">
+<h2>12 / 普通 MIDI 映射</h2>
+<p>此节CC编号用<strong>十进制</strong>。仅配置的MIDI通道生效；这些是外部MIDI控制，APP仍优先用可回执的SysEx。</p>
+<table><thead><tr><th>消息</th><th>用途</th><th>规则</th></tr></thead><tbody>
+<tr><td>Program Change 0～127</td><td>音色选择</td><td>01A～32D，0基地址。</td></tr>
+<tr><td>CC10～19</td><td>UNIT1～10开关</td><td>按UNIT ID0～9，不是TYPE，也不是当前链位置；值≥64打开，否则关闭。</td></tr>
+<tr><td>CC21</td><td>Looper踏键</td><td>高值触发PRESS手势，低值STOP，采用边沿规则。</td></tr>
+<tr><td>CC22 / 23 / 25</td><td>鼓机开关／鼓机BPM同步／调音器</td><td>高值开，低值关。</td></tr>
+<tr><td>CC24 / 39</td><td>Looper与鼓机启停同步</td><td>高值模式2，低值关闭。</td></tr>
+<tr><td>CC32</td><td>Looper STOP</td><td>高值上升沿。</td></tr>
+<tr><td>CC33</td><td>Looper UNDO / CLEAR手势</td><td>120 ms组合窗口及库内HOLD规则；APP直接使用显式UNDO/CLEAR命令更清晰。</td></tr>
+<tr><td>CC34 / 35</td><td>自动录音一次／持续</td><td>高值选择该模式，低值关闭，保留原阈值。</td></tr>
+<tr><td>CC36</td><td>Looper HEAD / TAIL</td><td>低值HEAD，高值TAIL。</td></tr>
+<tr><td>CC37</td><td>Looper与鼓机启动同步</td><td>高值模式1，低值关闭。</td></tr>
+</tbody></table>
+<p>不推断支持CC0 Bank Select、CC20 UNIT11等未定义映射。普通MIDI数据没有本协议的事务回执，手机／电脑依靠参数通知或状态GET观察实际结果。</p>
+</section>
+<section id="errors">
+<h2>13 / 错误、重试与互斥</h2>
+<table><thead><tr><th>error（hex）</th><th>含义</th><th>客户端动作</th></tr></thead><tbody>
+<tr><td>00</td><td>命令成功／片段成功</td><td>范围WRITE另看state；Looper等动作另看运行状态。</td></tr>
+<tr><td>01</td><td>参数、取值或业务操作失败</td><td>检查上下文／长度／有效资源／运行状态。旧业务部分忙也映射为01，不假定全部返回07。</td></tr>
+<tr><td>02</td><td>XOR错误</td><td>修正重组和校验范围，不能绕过校验。</td></tr>
+<tr><td>03</td><td>帧长度错误</td><td>检查data宽度、尾随数据和244 B限制。</td></tr>
+<tr><td>04 / 05</td><td>device不符／component不支持</td><td>验证身份和命令选择。</td></tr>
+<tr><td>06</td><td>未实现能力／旧格式无法表示</td><td>元数据标签退回原始值；EQ使用20宽格式。不要继续猜字段。</td></tr>
+<tr><td>07</td><td>BUSY</td><td>保留未完成用户意图，退避或等当前事务结束；不丢掉最终编辑值。</td></tr>
+<tr><td>08</td><td>STALE</td><td>丢弃旧分片候选，重同步；重新编辑时用新revision和新request_id。</td></tr>
+<tr><td>09</td><td>范围WRITE应用失败</td><td>不当成提交成功。读取状态，必要时显式重载音色；可能停留在安全旁路／静音。</td></tr>
+</tbody></table>
+<ul>
+<li>先检查完整帧、XOR、长度、error，再按命令解析payload；错误回执不保证带成功格式字段。</li>
+<li>错误帧或接收队列未准入不保证有回执。建议业务超时从2秒起，结构重建／文件操作允许更长；这是客户端起始策略，不是固件时延承诺。</li>
+<li>同一端一次只等待一个普通业务请求。ATT层可按系统流控连续发送一条帧的分片；不要把“业务串行”误写成“每20/197 B都等应用回复”。</li>
+<li>GET可重试；TOGGLE、INC、MOVE、DELETE、UNDO等超时先读状态，不能盲重发。范围WRITE重发必须保持原ID、revision、起点、总长及内容。</li>
+<li>控制只确认参数应用／动作准入，不承诺USB、蓝牙、鼓机、音量目标在同一个硬件采样点同时锁存。</li>
+<li>XOR用于帧差错检测，revision用于并发控制；两者都不是身份认证或密码学完整性。客户端连接／配对策略另行验证。</li>
+</ul>
+</section>
+<section id="examples">
+<h2>14 / 可复制报文与离线编码工具</h2>
+<p>以下都是完整请求帧。revision=1、request_id=1仅为编码示例；实际必须使用当前设备返回值。音色输入／输出修改示例会改变参数，联调时先读回并确认目标。</p>
+<table><thead><tr><th>用途</th><th>十六进制完整帧</th></tr></thead><tbody id="vector-table">
+<tr><td>身份查询</td><td><code>F0 00 59 01 09 01 22 72 F7</code></td></tr>
+<tr><td>范围能力查询</td><td><code>F0 00 59 01 09 01 40 10 F7</code></td></tr>
+<tr><td>首次连接／程序重开：重新同步当前视图</td><td><code>F0 00 59 01 09 00 42 03 10 F7</code></td></tr>
+<tr><td>保有镜像和接收上下文时续传</td><td><code>F0 00 59 01 09 00 42 01 12 F7</code></td></tr>
+<tr><td>READ全局64 B，revision=1</td><td><code>F0 00 59 01 09 01 40 01 00 00 00 00 00 00 00 40 00 51 F7</code></td></tr>
+<tr><td>01A输出改80，offset=415，revision=1，ID=1</td><td><code>F0 00 59 01 09 00 41 01 00 00 00 00 01 00 1F 03 00 01 00 00 00 01 00 00 50 5C F7</code></td></tr>
+<tr><td>完整视图／范围ACK，revision=2</td><td><code>F0 00 59 01 09 00 42 02 02 00 00 00 00 13 F7</code></td></tr>
+<tr><td>切到05C，id=18</td><td><code>F0 00 59 01 00 00 00 12 4A F7</code></td></tr>
+<tr><td>鼓机PLAY</td><td><code>F0 00 59 01 03 03 00 58 F7</code></td></tr>
+<tr><td>读取调音结果</td><td><code>F0 00 59 01 05 01 00 5C F7</code></td></tr>
+</tbody></table>
+<div class="notice">下方工具只在浏览器本地编解码，不连接蓝牙、不发送USB命令、不改设备。可导出独立JS辅助代码和测试向量供同事使用；它不是完整客户端SDK，未包含连接、超时、订阅状态机或业务字段校验。</div>
+<p class="status" id="selftest" role="status">等待浏览器执行编码自检；静态协议正文和示例不依赖脚本。</p>
+<div class="tools"><button id="download-js" type="button">导出 gt1-codec.js</button><button id="download-vectors" type="button">导出测试向量 JSON</button><button id="print" type="button">打印 / 另存 PDF</button></div>
+<div class="no-print">
+<label for="frame-kind">要解析的帧类型</label>
+<select id="frame-kind"><option value="request">主机请求</option><option value="response">设备回复 / 通知</option></select>
+<label for="hex-input">完整十六进制帧（先把 BLE 分片重组完）</label>
+<textarea id="hex-input" spellcheck="false">F0 00 59 01 09 01 22 72 F7</textarea>
+<div class="tools"><button id="inspect" type="button">检查 XOR 与解析</button></div><pre id="inspect-result" aria-live="polite">点击“检查 XOR 与解析”。</pre>
+</div>
+<details><summary>展开通用 JavaScript 编码辅助代码（可直接导出）</summary><pre id="codec-source"></pre></details>
+<noscript><p>浏览器未启用JavaScript，交接正文仍可阅读；编码工具和导出按钮不可用。</p></noscript>
+</section>
+<section id="acceptance">
+<h2>15 / 联调顺序与验收清单</h2>
+<p>先把小闭环跑通，再加页面。推荐动态查询仅在相应页面打开时启用：Looper约5～10 Hz，调音器约10～20 Hz；静态参数用通知，不整库轮询。频率为APP起始建议，后续按实测降低负担。</p>
+<ol class="checklist">
+<li><strong>连接：</strong>iOS／Android私有GATT发现、Notify启用、断线重连；电脑USB MIDI。记录实际可写长度、MTU载荷、连接间隔，分别测试默认20 B和协商后大载荷。</li>
+<li><strong>编码：</strong>本文10条向量逐字节一致；pack7覆盖0x80～0xFF、尾组、s14负数、u32最高位；坏XOR、超长和分片缺口拒绝。</li>
+<li><strong>首次同步：</strong>选中非01A启动，得到正确GLOB＋PATCH、同一revision，ACK成功并state=3后显示就绪；UI不出现半个名字／错位UNIT。USB不拔线连续关闭／重开程序，包含上次留有未ACK增量的情况，都应通过action03重建当前视图。</li>
+<li><strong>单字段：</strong>INPUT、OUTPUT、PAN、名称、单效果参数；同值不制造额外revision；设备通知实际值，手机不回写通知。</li>
+<li><strong>原子提交：</strong>374 B分包写，收最后一片前正式值不变；重复片不重复应用；缺包、断线、超时保留原参数。</li>
+<li><strong>三端冲突：</strong>手机上传期间转旋钮／电脑改值，旧写返回STALE；重新同步后不覆盖刚才的新值。两个来源同时分片写正确互斥。</li>
+<li><strong>结构：</strong>重复TYPE、重排、替换、删除压缩ID、模型缺失；验证旋钮绑定和参数队列失效，不重复DELETE。</li>
+<li><strong>动作：</strong>鼓机启停、Looper录放撤销、预备拍、定长上限、调音器进入退出；ACK与实际后台完成分开显示。</li>
+<li><strong>文件：</strong>GT1S/GT1B往返一致、CRC损坏拒绝；导出中编辑产生STALE；导入取消／超时不改原库；提交后完整重同步。</li>
+<li><strong>保存：</strong>软关机再开机保留修改；保存失败不能显示已落盘。正常查询、通知ACK不阻止自动关机计时。</li>
+<li><strong>性能：</strong>连续滑杆最终值到达、通知合并、大载荷与A2DP/USB音频共存，无音频阻塞。实测吞吐前不把MTU数字当速度结果。</li>
+</ol>
+<h3>本次已经验证 / 尚待验证</h3>
+<p><strong>已执行：</strong>设备实际C协议后端的主机回归 <code>test_parameter_read.py</code>、<code>test_parameter_write.py</code>、<code>test_parameter_notifications.py</code> 全部通过，覆盖多来源、范围编码、分片宽度、重复／断线／STALE、完整当前视图及通知背压。传输与部分运行后端使用测试替身，因此不能替代板上测试。</p>
+<p><strong>尚待共同完成：</strong>真实APP/电脑端适配、BLE实际协商和吞吐、滑杆/结构编辑的听感、不同手机重连与多端并发、真实软关机保存。本文的HTML显示与代码示例另做离线检查；本次没有烧录设备。</p>
+</section>
+<section id="basis">
+<h2>16 / 页面范围、限制与源码依据</h2>
+<table><thead><tr><th>页面 / 能力</th><th>当前设备接口</th><th>不要误认为已经提供</th></tr></thead><tbody>
+<tr><td>音色、10 UNIT、参数、旋钮</td><td>当前视图、目录、读写、切换、复制交换、资源选择</td><td>所有TYPE的中文枚举与专用UI描述自动完整生成。</td></tr>
+<tr><td>鼓机、Looper、调音器</td><td>偏好控制和动态状态查询</td><td>参数库包含PCM、Looper音频导入导出、音源资源在线上传。</td></tr>
+<tr><td>全局、EQ、USB录音、自动关机</td><td>GLOB64及对应业务命令</td><td>通用远程强制断电或“SET成功=Flash完成”。</td></tr>
+<tr><td>电脑／手机同步</td><td>同命令入口、revision、分片提交、主动通知</td><td>已交付生产级iOS/Android/桌面SDK，或三端已完成全部联合验收。</td></tr>
+<tr><td>分享、云音色、社区、账号、固件更新</td><td>GT1S/GT1B可供上层文件功能使用</td><td>云服务、账号体系、OTA／DFU、资源库上传协议。需要另行设计，不能借参数WRITE实现。</td></tr>
+</tbody></table>
+<p>文档遵循唯一参数所有权规则 <code>.cursor/rules/gt1-parameter-ownership.mdc</code>。仓库协议正文为 <code>gt1_app/docs/CONTROL_PROTOCOL_20260909.md</code>；本文件是当前实现的定日期交接快照。未来schema变化须同步更新并与客户端协调，不静默改变字节布局。</p>
+<table><thead><tr><th>核对源码</th><th>职责</th></tr></thead><tbody>
+<tr><td><code>gt1_app/apps/business/product_sysex.c</code></td><td>命令分发、READ/WRITE/NOTIFY、文件会话、帧校验与回执。</td></tr>
+<tr><td><code>gt1_app/apps/business/product_midi.c</code></td><td>私有GATT字节流与MIDI入口的独立重组／分派。</td></tr>
+<tr><td><code>gt1_app/apps/business/core/preset_storage.c/.h</code></td><td>schema12显式LE布局、完整字段边界、GT1S/GT1B codec。</td></tr>
+<tr><td><code>gt1_app/apps/business/core/product_parameters.c</code></td><td>参数正式发布、库级revision与通知范围。</td></tr>
+<tr><td><code>gt1_app/apps/effects/effect_registry.c/.h</code></td><td>TYPE、规范参数、可见参数及资源元数据。</td></tr>
+<tr><td><code>br27_platform/sdk/apps/soundbox/ble/bt_ble.c</code></td><td>AE40/AE41/AE42、独立BLE-MIDI、MTU200、通知流控。</td></tr>
+<tr><td><code>gt1_app/apps/config/product_identity.h</code></td><td>GT1 / AC703N / 0.2.117-dev / protocol1。</td></tr>
+</tbody></table>
+<details><summary>源文件指纹与版本追溯</summary>
+<p>核对时gt1_app HEAD <code>c4af1f9</code>，br27_platform HEAD <code>ce3b8a8</code>；工程含未提交改动，HEAD不独自代表完整构建。下列是本次核对文件的SHA256：</p>
+<pre>product_sysex.c
+3D3916444A39E0AA27CC10B7EBF69EA0D6802FE5C77DDF5FEDD9D183F0B550F6
+preset_storage.c
+A065DAA69296FA262826D63FD469C65391D307F61F1AF0935BB5DBF5B8308F6D
+bt_ble.c
+5E6E78C0AD7FBA0DD36A78A057CF40439D3AFCE793FC81298071EEC44D53B419</pre>
+</details>
+<p><strong>给APP开发者的交接底线：</strong>先让身份查询、438 B当前视图同步、一个字段原子写、设备主动更新、断线恢复五件事跑通。不要先实现48 KiB全库轮询，也不要绕过设备校验直接构造效果实例状态。</p>
+</section>
+</main></div>
+<footer>GT1 APP / Desktop integration handoff · 2026-09-14 · r2 · 单文件离线资料。所有长度、偏移及状态均以本文件标注的当前实现为准；不包含实际设备连接或发送操作。</footer>
+<script>
+"use strict";
+function makeGT1Codec() {
+  function integer(v,min,max,name) {
+    if (!Number.isSafeInteger(v) || v<min || v>max) throw Error(name+" out of range");
+    return v;
+  }
+  function bytes(values,max) { return Array.from(values,function(v){return integer(v,0,max,"byte");}); }
+  function encode(v,width,max) {
+    integer(v,0,max,"integer"); var out=[];
+    for(var i=0;i<width;i++){out.push(v%128);v=Math.floor(v/128);}
+    return out;
+  }
+  function decode(data,at,width,max) {
+    if(at<0 || at+width>data.length) throw Error("truncated integer");
+    var value=0;
+    for(var i=0;i<width;i++) value+=integer(data[at+i],0,127,"wire byte")*Math.pow(128,i);
+    return integer(value,0,max,"decoded integer");
+  }
+  function u14(v){return encode(v,2,16383);}
+  function s14(v){integer(v,-8192,8191,"s14");return u14(v<0?v+16384:v);}
+  function u16(v){return encode(v,3,65535);}
+  function u32(v){return encode(v,5,4294967295);}
+  function pack7(raw) {
+    raw=bytes(raw,255);var out=[];
+    for(var at=0;at<raw.length;at+=7){var n=Math.min(7,raw.length-at),mask=0;
+      for(var i=0;i<n;i++)if(raw[at+i]>=128)mask|=1<<i;
+      out.push(mask);for(var j=0;j<n;j++)out.push(raw[at+j]&127);
+    }return out;
+  }
+  function unpack7(wire,count) {
+    integer(count,0,65535,"raw count");wire=bytes(wire,127);
+    if(wire.length!==count+Math.ceil(count/7))throw Error("pack7 length mismatch");
+    var out=[],p=0;
+    while(out.length<count){var n=Math.min(7,count-out.length),mask=wire[p++];
+      if(mask>=Math.pow(2,n))throw Error("nonzero tail padding");
+      for(var i=0;i<n;i++)out.push(wire[p++]|(((mask>>i)&1)<<7));
+    }return out;
+  }
+  function request(component,command,selector,data,device) {
+    var b=bytes([0,0x59,device===undefined?1:device,component,command,selector].concat(data||[]),127);
+    var frame=[0xf0].concat(b,[b.reduce(function(x,y){return x^y;},0),0xf7]);
+    if(frame.length>244)throw Error("frame exceeds 244 bytes");
+    return Uint8Array.from(frame);
+  }
+  function fromHex(text) {
+    var clean=text.trim();if(!clean)return [];
+    return clean.split(/\s+/).map(function(t){if(!/^[0-9a-fA-F]{2}$/.test(t))throw Error("use two hex digits per byte");return parseInt(t,16);});
+  }
+  function hex(data){return Array.from(data,function(v){return v.toString(16).padStart(2,"0").toUpperCase();}).join(" ");}
+  function parse(frame,kind) {
+    if(kind!=="request"&&kind!=="response")throw Error("choose request or response");
+    var b=bytes(frame,255),response=kind==="response";
+    if(b.length<(response?10:9)||b.length>244||b[0]!==240||b[b.length-1]!==247)throw Error("invalid frame envelope");
+    if(b[1]!==0||b[2]!==89)throw Error("wrong protocol prefix");
+    bytes(b.slice(1,-1),127);
+    if(b.slice(1,-2).reduce(function(x,y){return x^y;},0)!==b[b.length-2])throw Error("XOR mismatch");
+    return {device:b[3],component:b[4],command:b[5],selector:b[6],
+      error:response?b[7]:null,data:b.slice(response?8:7,-2)};
+  }
+  function read(revision,offset,count){
+    integer(offset,0,47935,"offset");integer(count,1,193,"count");
+    if(offset+count>47936)throw Error("range exceeds parameter bank");
+    return request(9,1,0x40,u32(revision).concat(u16(offset),u14(count)));
+  }
+  function write(revision,id,offset,total,fragmentOffset,raw) {
+    integer(revision,1,4294967295,"revision");integer(id,1,16383,"id");
+    integer(offset,0,47935,"offset");integer(total,1,374,"total");
+    integer(fragmentOffset,0,total-1,"fragment offset");raw=bytes(raw,255);
+    integer(raw.length,1,191,"fragment size");
+    var available=offset<64?64-offset:374-(offset-64)%374;
+    if(total>available||fragmentOffset+raw.length>total)throw Error("write crosses record or transaction");
+    return request(9,0,0x41,u32(revision).concat(u14(id),u16(offset),u14(total),u14(fragmentOffset),u14(raw.length),pack7(raw)));
+  }
+  function header(data){
+    if(data.length<13||data[0]!==1)throw Error("unsupported/truncated range header");
+    return {format:data[0],schema:decode(data,1,2,16383),revision:decode(data,3,5,4294967295),
+      offset:decode(data,8,3,65535),count:decode(data,11,2,16383)};
+  }
+  function rangeReply(message,infoOnly){
+    var d=message.data,h=header(d),start=13;
+    if(message.component!==9)throw Error("not a system range message");
+    if(message.selector===0x42&&message.command===0x7e){
+      if(d.length<19)throw Error("truncated notification");
+      h.rangeStart=decode(d,13,3,65535);h.rangeTotal=decode(d,16,3,65535);start=19;
+      if(!h.count||!h.rangeTotal||h.rangeStart+h.rangeTotal>47936||h.offset<h.rangeStart||h.offset+h.count>h.rangeStart+h.rangeTotal)throw Error("invalid notification range");
+    }else if(message.selector===0x41&&d.length>=20){
+      h.requestId=decode(d,13,2,16383);h.state=d[15];h.filled=decode(d,16,2,16383);h.total=decode(d,18,2,16383);start=20;
+      if(h.state>3)throw Error("unknown write state");
+    }else if(message.selector!==0x40&&message.selector!==0x41)throw Error("not a range reply");
+    if(infoOnly){if(d.length!==13||message.selector!==0x40||message.error!==0)throw Error("not a capability reply");h.totalBytes=h.offset;h.maxRaw=h.count;}
+    else h.raw=unpack7(d.slice(start),h.count);
+    return h;
+  }
+  function patchOffset(index,within){
+    integer(index,0,127,"preset");integer(within,0,373,"patch field offset");return 64+374*index+within;
+  }
+  return {u14:u14,s14:s14,u16:u16,u32:u32,decode:decode,pack7:pack7,unpack7:unpack7,
+    request:request,parse:parse,read:read,write:write,header:header,rangeReply:rangeReply,
+    patchOffset:patchOffset,hex:hex,fromHex:fromHex};
+}
+window.GT1Codec=makeGT1Codec();
+const C=window.GT1Codec;
+const vectors=[
+ {name:"identity",hex:"F0 00 59 01 09 01 22 72 F7",make:()=>C.request(9,1,0x22)},
+ {name:"read capabilities",hex:"F0 00 59 01 09 01 40 10 F7",make:()=>C.request(9,1,0x40)},
+ {name:"fresh current view",hex:"F0 00 59 01 09 00 42 03 10 F7",make:()=>C.request(9,0,0x42,[3])},
+ {name:"resume retained view",hex:"F0 00 59 01 09 00 42 01 12 F7",make:()=>C.request(9,0,0x42,[1])},
+ {name:"read globals revision1",hex:"F0 00 59 01 09 01 40 01 00 00 00 00 00 00 00 40 00 51 F7",make:()=>C.read(1,0,64)},
+ {name:"01A output80 revision1 id1",hex:"F0 00 59 01 09 00 41 01 00 00 00 00 01 00 1F 03 00 01 00 00 00 01 00 00 50 5C F7",make:()=>C.write(1,1,C.patchOffset(0,351),1,0,[80])},
+ {name:"ACK revision2",hex:"F0 00 59 01 09 00 42 02 02 00 00 00 00 13 F7",make:()=>C.request(9,0,0x42,[2].concat(C.u32(2)))},
+ {name:"select05C",hex:"F0 00 59 01 00 00 00 12 4A F7",make:()=>C.request(0,0,0,[18])},
+ {name:"drum play",hex:"F0 00 59 01 03 03 00 58 F7",make:()=>C.request(3,3,0)},
+ {name:"tuner get",hex:"F0 00 59 01 05 01 00 5C F7",make:()=>C.request(5,1,0)}
+];
+function runChecks(){
+ let checks=0;function ok(v){checks++;if(!v)throw Error("check "+checks+" failed");}
+ function rejects(fn){let failed=false;try{fn();}catch(e){failed=true;}ok(failed);}
+ for(const v of vectors){ok(C.hex(v.make())===v.hex);ok(C.parse(C.fromHex(v.hex),"request").device===1);}
+ ok(C.hex(C.pack7([0,127,128,255,85,170,1,254]))==="2C 00 7F 00 7F 55 2A 01 01 7E");
+ for(let n=0;n<=374;n++){let raw=Array.from({length:n},(_,i)=>(i*137+n)&255);ok(JSON.stringify(C.unpack7(C.pack7(raw),n))===JSON.stringify(raw));}
+ for(const v of [0,1,127,128,2147483648,4294967295])ok(C.decode(C.u32(v),0,5,4294967295)===v);
+ ok(C.hex(C.s14(-1))==="7F 7F");ok(C.hex(C.s14(-8192))==="00 40");
+ rejects(()=>C.unpack7([2,0],1));rejects(()=>C.u16(65536));rejects(()=>C.s14(8192));
+ rejects(()=>C.write(1,1,63,2,0,[1,2]));rejects(()=>C.parse(C.fromHex("F0 00 59 01 09 01 22 73 F7"),"request"));
+ const status=document.getElementById("selftest");status.textContent="离线编码自检通过："+checks+" 项（帧向量、pack7往返、整数边界和非法输入）。";
+ status.dataset.result="pass";window.GT1SelfTest={passed:true,checks:checks};
+}
+function saveFile(name,text,type){const url=URL.createObjectURL(new Blob([text],{type:type}));const a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+const codeText="/* GT1 protocol 1 / schema 12, 2026-09-14. Codec helpers only; no transport/state machine. */\nconst GT1Codec = ("+makeGT1Codec.toString()+")();\nif (typeof module !== 'undefined') module.exports = GT1Codec;\n";
+document.getElementById("codec-source").textContent=codeText;
+document.getElementById("download-js").onclick=()=>saveFile("gt1-codec.js",codeText,"text/javascript;charset=utf-8");
+document.getElementById("download-vectors").onclick=()=>saveFile("gt1-test-vectors.json",JSON.stringify({protocol:1,schema:12,vectors:vectors.map(v=>({name:v.name,hex:v.hex}))},null,2),"application/json");
+document.getElementById("print").onclick=()=>window.print();
+document.getElementById("inspect").onclick=()=>{try{
+ const m=C.parse(C.fromHex(document.getElementById("hex-input").value),document.getElementById("frame-kind").value);
+ const result={...m,componentHex:m.component.toString(16).padStart(2,"0"),commandHex:m.command.toString(16).padStart(2,"0"),selectorHex:m.selector.toString(16).padStart(2,"0"),dataHex:C.hex(m.data)};
+ if(m.error===0&&m.component===9&&m.data.length>=13&&(m.selector===0x40||m.selector===0x41||(m.command===0x7e&&m.selector===0x42))){
+   const info=m.selector===0x40&&m.data.length===13&&C.header(m.data).offset===47936;
+   result.range=C.rangeReply(m,info);
+ }document.getElementById("inspect-result").textContent=JSON.stringify(result,null,2);
+}catch(e){document.getElementById("inspect-result").textContent="无效帧 / 不支持的解析："+e.message;}};
+try{runChecks();}catch(e){document.getElementById("selftest").textContent="编码自检失败："+e.message;document.getElementById("selftest").dataset.result="fail";window.GT1SelfTest={passed:false,error:e.message};}
+</script>
+</body>
+</html>

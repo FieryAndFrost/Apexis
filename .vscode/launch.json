@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Apexis · Windows CDC 试验（性能模式）",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "profile",
+      "toolArgs": ["--dart-define=GT1_USB_TRANSPORT=cdc"]
+    },
+    {
+      "name": "Apexis · Windows MIDI 回退（原固件）",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "profile",
+      "toolArgs": ["--dart-define=GT1_USB_TRANSPORT=midi"]
+    },
+    {
+      "name": "Apexis · Windows 调试",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "Apexis · Windows 演示模式",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "debug",
+      "toolArgs": ["--dart-define=DEMO=true"]
+    },
+    {
+      "name": "Apexis · Windows 性能模式",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Apexis · 手机调试（先选择设备）",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    }
+  ]
+}
