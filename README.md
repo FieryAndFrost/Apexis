@@ -4,6 +4,8 @@ Flutter 效果器控制应用，按 Apexis STD 交互稿与 GT1 protocol 1 / sch
 
 Windows 已切换为 **USB Audio + 私有 Bulk / WinUSB**，不再提供 CDC/MIDI 回退入口。需要配套的新 GT1 固件；旧 CDC 固件不会出现在新应用的扫描结果中。实现和验证状态见 [WinUSB 说明](docs/GT1_WINUSB_20260922.md)。
 
+macOS 已接入同一私有 Bulk 协议的 IOKit 后端，不使用 CDC/MIDI 回退，不依赖 Homebrew libusb。**当前开发机为 Windows，Mac 编译及实机验收尚未执行**，步骤和边界见 [macOS USB 说明](docs/GT1_MACOS_USB.md)。
+
 ## 运行
 
 ### VS Code 点击运行（Windows）
@@ -16,6 +18,14 @@ Windows 启动项已固定设备。Debug 支持断点与热重载，但切页耗
 `Apexis · Windows 性能模式` 使用 profile 构建，不支持热重载；修改代码后需要重新运行。原来的 Debug 启动项仍保留。已经打开的 Debug 窗口不能通过热重载切成 Profile，需要先结束该会话再用性能模式启动。
 本项目隐藏了 Code Runner 的编辑器运行图标，避免将 Flutter 应用误当成普通 Dart 脚本执行；请使用上面的“运行和调试”入口。
 若在其他电脑运行，需先安装 Flutter SDK 和带有“使用 C++ 的桌面开发”工作负载的 Visual Studio。
+
+### VS Code 点击运行（macOS）
+
+1. 在 Mac 安装 Flutter、Xcode 及项目插件需要的 CocoaPods，执行 `flutter doctor -v` 和 `flutter pub get`。
+2. 用 USB 数据线连接已烧入私有 USB 固件的 GT1；若系统询问是否允许配件连接，选择允许。
+3. VS Code 选择 `Apexis · macOS 私有 USB（性能模式）`，按 F5；需要断点/热重载选择 `Apexis · macOS 调试`。
+
+也可执行 `flutter run -d macos --profile`。IOKit 原生代码随 Xcode Runner 一起编译，USB 沙盒权限已配置；无需另装私有 USB 驱动或重新烧一份 Mac 专用固件。首次在 Mac 上构建仍需验证插件和原生 USB 后端。
 
 ### 手机端调试
 

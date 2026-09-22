@@ -1,14 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:apexis/transport/usb_worker.dart';
-import 'package:apexis/transport/windows_usb_worker.dart';
+import 'package:apexis/transport/desktop_usb_transport.dart';
 
 /// Read-only native enumeration. Does not open any serial or MIDI device.
 Future<void> main() async {
-  final worker = UsbWorker(windowsUsbWorker);
+  final transport = createDesktopUsbTransport();
   try {
-    stdout.writeln(jsonEncode({'gt1UsbInterfaces': await worker.request('scan')}));
+    final ports = await transport.scan();
+    stdout.writeln(
+      jsonEncode({
+        'gt1UsbInterfaces': [
+          for (final port in ports) [port.id, port.name],
+        ],
+      }),
+    );
   } finally {
-    await worker.dispose();
+    await transport.dispose();
   }
 }

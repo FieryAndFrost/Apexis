@@ -4,7 +4,7 @@ import 'package:apexis/data/file_transfer.dart';
 import 'package:apexis/data/parameters.dart';
 import 'package:apexis/protocol/codec.dart';
 import 'package:apexis/protocol/session.dart';
-import 'package:apexis/transport/windows_usb_transport.dart';
+import 'package:apexis/transport/desktop_usb_transport.dart';
 
 /// Export only, then independently READ the entire revision-locked bank.
 /// Never import, restore, write parameters, restart or enter BOOT.
@@ -18,13 +18,13 @@ Future<void> main(List<String> args) async {
     'verified': false,
     'mutationsStarted': false,
   };
-  final transport = WindowsUsbTransport();
+  final transport = createDesktopUsbTransport();
   ProtocolSession? session;
   final faults = <String>[];
   report['faults'] = faults;
   try {
     final ports = await transport.scan();
-    if (ports.length != 1) throw StateError('Exactly one GT1 WinUSB required');
+    if (ports.length != 1) throw StateError('Exactly one GT1 USB required');
     report['port'] = ports.single.id;
     await transport.connect(ports.single);
     session = ProtocolSession(transport);

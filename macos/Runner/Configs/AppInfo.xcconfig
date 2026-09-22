@@ -7,6 +7,9 @@
 // The application's name. By default this is also the title of the Flutter window.
 PRODUCT_NAME = apexis
 
+// Export the statically linked USB C ABI for Dart DynamicLibrary.process().
+OTHER_LDFLAGS = $(inherited) -framework IOKit -framework CoreFoundation -Wl,-export_dynamic
+
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.apexis.apexis
 

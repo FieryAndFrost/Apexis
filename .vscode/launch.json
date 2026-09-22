@@ -41,6 +41,24 @@
       "flutterMode": "profile"
     },
     {
+      "name": "Apexis · macOS 私有 USB（性能模式）",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "macos",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Apexis · macOS 调试",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "lib/main.dart",
+      "deviceId": "macos",
+      "flutterMode": "debug"
+    },
+    {
       "name": "Apexis · 手机调试（先选择设备）",
       "request": "launch",
       "type": "dart",

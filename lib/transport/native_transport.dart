@@ -6,7 +6,7 @@ import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'transport.dart';
 import 'usb_unsupported.dart'
-    if (dart.library.ffi) 'windows_usb_transport.dart';
+    if (dart.library.ffi) 'desktop_usb_transport.dart';
 
 class NativeTransport implements DeviceTransport {
   bool get mobile =>
@@ -15,7 +15,7 @@ class NativeTransport implements DeviceTransport {
   final _bytes = StreamController<List<int>>.broadcast();
   final _connected = StreamController<bool>.broadcast();
   late final _midi = MidiCommand();
-  WindowsUsbTransport? _usb;
+  DeviceTransport? _usb;
   StreamSubscription<List<int>>? _usbBytes;
   StreamSubscription<bool>? _usbState;
   BluetoothDevice? _ble;
@@ -38,9 +38,10 @@ class NativeTransport implements DeviceTransport {
   Future<List<DevicePort>> scan() async {
     if (kIsWeb) throw UnsupportedError('浏览器预览使用演示模式；设备连接请运行原生应用');
     if (!mobile) {
-      // Windows uses only the GT1 vendor interface; never open WinMM/COM.
-      if (defaultTargetPlatform == TargetPlatform.windows) {
-        return (_usb ??= WindowsUsbTransport()).scan();
+      // Desktop USB backends claim only GT1's vendor interface, never CDC/MIDI.
+      if (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.macOS) {
+        return (_usb ??= createDesktopUsbTransport()).scan();
       }
       final devices = await _midi.devices ?? [];
       return devices
@@ -112,8 +113,8 @@ class NativeTransport implements DeviceTransport {
     await disconnect();
     final generation = _connectionGeneration;
     try {
-      if (port.kind == 'USB WinUSB') {
-        final usb = _usb ??= WindowsUsbTransport();
+      if (port.kind == 'USB WinUSB' || port.kind == 'USB IOKit') {
+        final usb = _usb ??= createDesktopUsbTransport();
         _usbBytes = usb.bytes.listen(_bytes.add, onError: _bytes.addError);
         _usbState = usb.connected.listen((online) {
           if (!online && generation == _connectionGeneration) {

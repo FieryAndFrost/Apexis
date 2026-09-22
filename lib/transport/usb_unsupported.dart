@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'transport.dart';
 
+DeviceTransport createDesktopUsbTransport() => WindowsUsbTransport();
+
 class WindowsUsbTransport implements DeviceTransport {
   @override
   Stream<List<int>> get bytes => const Stream.empty();

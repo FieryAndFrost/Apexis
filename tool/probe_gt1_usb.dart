@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:apexis/data/parameters.dart';
 import 'package:apexis/protocol/codec.dart';
 import 'package:apexis/protocol/session.dart';
-import 'package:apexis/transport/windows_usb_transport.dart';
+import 'package:apexis/transport/desktop_usb_transport.dart';
 
-/// Read-only, real Windows transport: reconnect three times and repeat GETs.
+/// Read-only, real desktop USB transport: reconnect three times and repeat GETs.
 Future<void> main(List<String> args) async {
   final queries = int.parse(
     Platform.environment['GT1_USB_PROBE_QUERIES'] ?? '20',
@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
   await save();
   try {
     for (var cycle = 0; cycle < 3; cycle++) {
-      final transport = WindowsUsbTransport();
+      final transport = createDesktopUsbTransport();
       ProtocolSession? session;
       final results = <Map<String, Object?>>[];
       final item = <String, Object?>{'cycle': cycle + 1, 'gets': results};
@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
       try {
         final ports = await transport.scan();
         if (ports.length != 1) {
-          throw StateError('Expected exactly one GT1 WinUSB: ${ports.length}');
+          throw StateError('Expected exactly one GT1 USB: ${ports.length}');
         }
         item['port'] = ports.single.id;
         await transport.connect(ports.single);
