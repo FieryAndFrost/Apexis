@@ -4,18 +4,12 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
-import 'windows_cdc_native.dart';
-
-final _waitForMultipleObjects = DynamicLibrary.open('kernel32.dll')
-    .lookupFunction<
-      Uint32 Function(Uint32, Pointer<IntPtr>, Int32, Uint32),
-      int Function(int, Pointer<IntPtr>, int, int)
-    >('WaitForMultipleObjects');
+import 'windows_usb_native.dart';
 
 /// One event-driven reader per connection. The owner must await [close] before
-/// closing the serial handle. No polling timer and no native wait on the UI.
-class WindowsCdcReader {
-  WindowsCdcReader._(this._stop, this._data, this._fault);
+/// closing the USB handle. No polling timer and no native wait on the UI.
+class WindowsUsbReader {
+  WindowsUsbReader._(this._stop, this._data, this._fault);
 
   final int _stop;
   final void Function(Uint8List) _data;
@@ -26,14 +20,14 @@ class WindowsCdcReader {
   bool _closing = false, _failed = false;
   Future<void>? _closingFuture;
 
-  static Future<WindowsCdcReader> start(
+  static Future<WindowsUsbReader> start(
     int handle, {
     required void Function(Uint8List) onData,
     required void Function(Object) onFault,
   }) async {
     final stop = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    if (stop == 0) throw StateError('CDC 停止事件创建失败：${GetLastError()}');
-    final reader = WindowsCdcReader._(stop, onData, onFault);
+    if (stop == 0) throw StateError('WinUSB 停止事件创建失败：${GetLastError()}');
+    final reader = WindowsUsbReader._(stop, onData, onFault);
     // Register error handling before spawning: startup can fail before the
     // parent resumes from Isolate.spawn (e.g. missing native dependency).
     final readiness = reader._ready.future.then<Object?>(
@@ -43,12 +37,12 @@ class WindowsCdcReader {
     reader._messages.listen(reader._message);
     try {
       await Isolate.spawn(
-        windowsCdcReadLoop,
+        windowsUsbReadLoop,
         [handle, stop, reader._messages.sendPort],
         onExit: reader._messages.sendPort,
         onError: reader._messages.sendPort,
         errorsAreFatal: true,
-        debugName: 'Windows CDC event RX',
+        debugName: 'Windows WinUSB event RX',
       );
     } catch (_) {
       reader._messages.close();
@@ -68,13 +62,13 @@ class WindowsCdcReader {
   void _message(dynamic message) {
     if (message == null) {
       if (!_stopped.isCompleted) _stopped.complete();
-      if (!_closing && !_failed) _error(StateError('CDC 接收线程已退出'));
+      if (!_closing && !_failed) _error(StateError('WinUSB 接收线程已退出'));
     } else if (message is List && message[0] == 'ready') {
       if (!_ready.isCompleted) _ready.complete();
     } else if (message is List && message[0] == 'data') {
       if (!_closing && !_failed) _data(message[1] as Uint8List);
     } else {
-      _error(StateError('CDC 接收失败：$message'));
+      _error(StateError('WinUSB 接收失败：$message'));
     }
   }
 
@@ -99,38 +93,29 @@ class WindowsCdcReader {
   })();
 }
 
-/// Also exercised against a real Windows overlapped named pipe in tests.
-void windowsCdcReadLoop(List<Object> args) {
+/// A blocking native wait runs only on this dedicated RX isolate.
+void windowsUsbReadLoop(List<Object> args) {
   final handle = args[0] as int, stop = args[1] as int;
   final host = args[2] as SendPort;
-  GetLastError(); // Resolve the lazy binding before the first failing API call.
-  final buffer = calloc<Uint8>(4096);
+  final buffer = calloc<Uint8>(64);
   final count = calloc<Uint32>();
-  final overlapped = calloc<OVERLAPPED>();
-  final events = calloc<IntPtr>(2);
-  var pending = false;
   try {
-    final event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    if (event == 0) throw StateError('创建接收事件：${GetLastError()}');
-    overlapped.ref.hEvent = event;
-    events[0] = stop; // Stop wins if both events are signaled.
-    events[1] = event;
+    // Load the library before declaring readiness.
+    final read = usbRead;
     host.send(['ready']);
     while (WaitForSingleObject(stop, 0) == WAIT_TIMEOUT) {
-      ResetEvent(event);
-      final error = cdcRead(handle, buffer, 4096, overlapped);
-      if (error != 0) {
-        if (error != ERROR_IO_PENDING) throw StateError('ReadFile：$error');
-        pending = true;
-        final result = _waitForMultipleObjects(2, events, FALSE, INFINITE);
-        if (result == WAIT_OBJECT_0) break;
-        if (result != WAIT_OBJECT_0 + 1) {
-          throw StateError('等待 CDC 数据：${GetLastError()}');
-        }
+      final error = read(
+        Pointer<Void>.fromAddress(handle),
+        buffer,
+        64,
+        count,
+        stop,
+      );
+      if (error == ERROR_OPERATION_ABORTED &&
+          WaitForSingleObject(stop, 0) == WAIT_OBJECT_0) {
+        break;
       }
-      final completion = cdcResult(handle, overlapped, count, FALSE);
-      if (completion != ERROR_IO_INCOMPLETE) pending = false;
-      if (completion != 0) throw StateError('完成 CDC 读取：$completion');
+      if (error != 0) throw StateError('WinUSB 读取失败：$error');
       if (count.value > 0) {
         host.send([
           'data',
@@ -141,14 +126,7 @@ void windowsCdcReadLoop(List<Object> args) {
   } catch (e) {
     host.send(['fault', e.toString()]);
   } finally {
-    if (pending) {
-      CancelIoEx(handle, overlapped);
-      // CancelIoEx only requests cancellation; wait for actual completion.
-      cdcResult(handle, overlapped, count, TRUE);
-    }
-    if (overlapped.ref.hEvent != 0) CloseHandle(overlapped.ref.hEvent);
-    calloc.free(events);
-    calloc.free(overlapped);
+    // usbRead does not return until any pending native operation is completed.
     calloc.free(count);
     calloc.free(buffer);
   }

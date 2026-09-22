@@ -5,8 +5,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'transport.dart';
-import 'cdc_unsupported.dart'
-    if (dart.library.ffi) 'windows_cdc_transport.dart';
+import 'usb_unsupported.dart'
+    if (dart.library.ffi) 'windows_usb_transport.dart';
 
 class NativeTransport implements DeviceTransport {
   bool get mobile =>
@@ -15,13 +15,9 @@ class NativeTransport implements DeviceTransport {
   final _bytes = StreamController<List<int>>.broadcast();
   final _connected = StreamController<bool>.broadcast();
   late final _midi = MidiCommand();
-  WindowsCdcTransport? _cdc;
-  StreamSubscription<List<int>>? _cdcBytes;
-  StreamSubscription<bool>? _cdcState;
-  static const _usbTransport = String.fromEnvironment(
-    'GT1_USB_TRANSPORT',
-    defaultValue: 'cdc',
-  );
+  WindowsUsbTransport? _usb;
+  StreamSubscription<List<int>>? _usbBytes;
+  StreamSubscription<bool>? _usbState;
   BluetoothDevice? _ble;
   BluetoothCharacteristic? _write;
   MidiDevice? _midiDevice;
@@ -42,11 +38,9 @@ class NativeTransport implements DeviceTransport {
   Future<List<DevicePort>> scan() async {
     if (kIsWeb) throw UnsupportedError('浏览器预览使用演示模式；设备连接请运行原生应用');
     if (!mobile) {
-      // CDC trial must not enumerate/open WinMM, even when no CDC is found.
-      // Original MIDI firmware: --dart-define=GT1_USB_TRANSPORT=midi.
-      if (defaultTargetPlatform == TargetPlatform.windows &&
-          _usbTransport != 'midi') {
-        return (_cdc ??= WindowsCdcTransport()).scan();
+      // Windows uses only the GT1 vendor interface; never open WinMM/COM.
+      if (defaultTargetPlatform == TargetPlatform.windows) {
+        return (_usb ??= WindowsUsbTransport()).scan();
       }
       final devices = await _midi.devices ?? [];
       return devices
@@ -118,15 +112,15 @@ class NativeTransport implements DeviceTransport {
     await disconnect();
     final generation = _connectionGeneration;
     try {
-      if (port.kind == 'USB CDC') {
-        final cdc = _cdc ??= WindowsCdcTransport();
-        _cdcBytes = cdc.bytes.listen(_bytes.add, onError: _bytes.addError);
-        _cdcState = cdc.connected.listen((online) {
+      if (port.kind == 'USB WinUSB') {
+        final usb = _usb ??= WindowsUsbTransport();
+        _usbBytes = usb.bytes.listen(_bytes.add, onError: _bytes.addError);
+        _usbState = usb.connected.listen((online) {
           if (!online && generation == _connectionGeneration) {
             _connected.add(false);
           }
         });
-        await cdc.connect(port);
+        await usb.connect(port);
         if (generation != _connectionGeneration) throw StateError('连接已取消');
       } else if (port.kind == 'BLE') {
         final device = _ble = BluetoothDevice.fromId(port.id);
@@ -197,8 +191,8 @@ class NativeTransport implements DeviceTransport {
 
   @override
   Future<void> send(Uint8List frame) async {
-    if (_cdcBytes != null) {
-      await _cdc!.send(frame);
+    if (_usbBytes != null) {
+      await _usb!.send(frame);
     } else if (_write != null) {
       final size = payload;
       for (var at = 0; at < frame.length; at += size) {
@@ -220,13 +214,13 @@ class NativeTransport implements DeviceTransport {
     _connectionGeneration++;
     _monitor?.cancel();
     _monitor = null;
-    await _cdcBytes?.cancel();
-    await _cdcState?.cancel();
-    _cdcBytes = null;
-    _cdcState = null;
-    final cdc = _cdc;
-    _cdc = null;
-    await cdc?.dispose();
+    await _usbBytes?.cancel();
+    await _usbState?.cancel();
+    _usbBytes = null;
+    _usbState = null;
+    final usb = _usb;
+    _usb = null;
+    await usb?.dispose();
     await _notify?.cancel();
     await _bleState?.cancel();
     await _midiRx?.cancel();
@@ -246,7 +240,7 @@ class NativeTransport implements DeviceTransport {
   @override
   Future<void> dispose() async {
     await disconnect();
-    await _cdc?.dispose();
+    await _usb?.dispose();
     await _bytes.close();
     await _connected.close();
   }

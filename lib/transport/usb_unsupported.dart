@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'transport.dart';
 
-class WindowsCdcTransport implements DeviceTransport {
+class WindowsUsbTransport implements DeviceTransport {
   @override
   Stream<List<int>> get bytes => const Stream.empty();
   @override
@@ -12,9 +12,9 @@ class WindowsCdcTransport implements DeviceTransport {
   Future<List<DevicePort>> scan() async => [];
   @override
   Future<void> connect(DevicePort port) async =>
-      throw UnsupportedError('CDC 试验目前仅支持 Windows');
+      throw UnsupportedError('WinUSB 试验目前仅支持 Windows');
   @override
-  Future<void> send(Uint8List frame) async => throw StateError('CDC 未连接');
+  Future<void> send(Uint8List frame) async => throw StateError('WinUSB 未连接');
   @override
   Future<void> disconnect() async {}
   @override

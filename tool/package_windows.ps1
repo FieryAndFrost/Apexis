@@ -5,7 +5,7 @@ try {
     flutter build windows --release
     if ($LASTEXITCODE -ne 0) { throw 'Windows build failed' }
     $sourceDirectory = Join-Path $projectDirectory 'build\windows\x64\runner\Release'
-    foreach ($item in @('apexis.exe', 'flutter_windows.dll', 'data')) {
+    foreach ($item in @('apexis.exe', 'apexis_usb_io.dll', 'flutter_windows.dll', 'data')) {
         if (-not (Test-Path -LiteralPath (Join-Path $sourceDirectory $item))) { throw "Missing build artifact: $item" }
     }
     $outputDirectory = Join-Path $projectDirectory 'APP\Apexis'

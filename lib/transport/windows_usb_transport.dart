@@ -1,24 +1,25 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'cdc_worker.dart';
-import 'windows_cdc_worker.dart';
+import 'usb_worker.dart';
+import 'windows_usb_worker.dart';
 import 'transport.dart';
 
-class WindowsCdcTransport implements DeviceTransport {
-  WindowsCdcTransport({CdcWorker? worker})
-    : _worker = worker ?? CdcWorker(windowsCdcWorker) {
+class WindowsUsbTransport implements DeviceTransport {
+  WindowsUsbTransport({UsbWorker? worker})
+    : _worker = worker ?? UsbWorker(windowsUsbWorker) {
     _events = _worker.events.listen((event) {
       if (_disposed) return;
       if (event[0] == 'data' && _online) {
         _bytes.add((event[1] as List).cast<int>());
       } else if (event[0] == 'fault') {
+        _epoch++; // An early RX fault must not be followed by connected=true.
         _online = false;
         _bytes.addError(StateError(event[1].toString()));
         _connected.add(false);
       }
     });
   }
-  final CdcWorker _worker;
+  final UsbWorker _worker;
   late final StreamSubscription<List<Object?>> _events;
   final _bytes = StreamController<List<int>>.broadcast();
   final _connected = StreamController<bool>.broadcast();
@@ -36,17 +37,17 @@ class WindowsCdcTransport implements DeviceTransport {
     final rows = await _worker.request('scan') as List;
     return rows.map((row) {
       final item = row as List;
-      return DevicePort(item[0] as String, item[1] as String, 'USB CDC');
+      return DevicePort(item[0] as String, item[1] as String, 'USB WinUSB');
     }).toList();
   }
 
   @override
   Future<void> connect(DevicePort port) async {
-    if (_disposed) throw StateError('CDC 已关闭');
-    if (port.kind != 'USB CDC') throw ArgumentError('不是 CDC 端口');
+    if (_disposed) throw StateError('WinUSB 已关闭');
+    if (port.kind != 'USB WinUSB') throw ArgumentError('不是 WinUSB 端口');
     await disconnect();
     final epoch = _epoch;
-    if (_disposed) throw StateError('CDC 已关闭');
+    if (_disposed) throw StateError('WinUSB 已关闭');
     _hasSession = true;
     try {
       await _worker.request('open', port.id);
@@ -54,16 +55,16 @@ class WindowsCdcTransport implements DeviceTransport {
       if (epoch == _epoch) _hasSession = false;
       rethrow;
     }
-    if (_disposed || epoch != _epoch) throw StateError('CDC 连接已取消');
+    if (_disposed || epoch != _epoch) throw StateError('WinUSB 连接已取消');
     _online = true;
     _connected.add(true);
   }
 
   @override
   Future<void> send(Uint8List frame) async {
-    if (!_online || _disposed) throw StateError('CDC 未连接');
+    if (!_online || _disposed) throw StateError('WinUSB 未连接');
     if (frame.isEmpty || frame.length > payload) {
-      throw ArgumentError('CDC 帧长度必须为 1～244 字节');
+      throw ArgumentError('WinUSB 帧长度必须为 1～244 字节');
     }
     await _worker.request('write', Uint8List.fromList(frame));
   }

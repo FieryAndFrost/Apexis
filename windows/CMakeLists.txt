@@ -51,8 +51,8 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
-add_subdirectory("cdc_io")
-add_dependencies(${BINARY_NAME} apexis_cdc_io)
+add_subdirectory("usb_io")
+add_dependencies(${BINARY_NAME} apexis_usb_io)
 
 
 # Generated plugin build rules, which manage building the plugins and adding
@@ -76,7 +76,7 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
-install(TARGETS apexis_cdc_io RUNTIME DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(TARGETS apexis_usb_io RUNTIME DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"

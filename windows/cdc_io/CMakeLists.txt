@@ -1,7 +1,0 @@
-cmake_minimum_required(VERSION 3.14)
-project(apexis_cdc_io LANGUAGES CXX)
-add_library(apexis_cdc_io SHARED cdc_io.cpp)
-target_compile_features(apexis_cdc_io PRIVATE cxx_std_17)
-if(MSVC)
-  target_compile_options(apexis_cdc_io PRIVATE /W4 /WX)
-endif()

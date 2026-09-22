@@ -2,6 +2,8 @@
 
 Flutter 效果器控制应用，按 Apexis STD 交互稿与 GT1 protocol 1 / schema 12 实现；兼容原 2026-09-14 r2 及新版 r5 的 F/U 音色规则。
 
+Windows 已切换为 **USB Audio + 私有 Bulk / WinUSB**，不再提供 CDC/MIDI 回退入口。需要配套的新 GT1 固件；旧 CDC 固件不会出现在新应用的扫描结果中。实现和验证状态见 [WinUSB 说明](docs/GT1_WINUSB_20260922.md)。
+
 ## 运行
 
 ### VS Code 点击运行（Windows）
@@ -28,7 +30,7 @@ flutter pub get
 flutter run -d windows
 ```
 
-启动后搜索 USB MIDI 设备；手机端搜索 BLE 设备。无设备时点击“进入演示模式”。也可以直接启动演示：
+Windows 启动后搜索 GT1 私有 USB 接口；手机端搜索 BLE 设备。无设备时点击“进入演示模式”。也可以直接启动演示：
 
 ```powershell
 flutter run -d windows --dart-define=DEMO=true
@@ -39,6 +41,9 @@ flutter run -d chrome --dart-define=DEMO=true
 
 ```powershell
 flutter analyze
+cmake -S windows/usb_io -B build/usb_io -G "Visual Studio 17 2022" -A x64 -DAPEXIS_USB_TESTS=ON
+cmake --build build/usb_io --config Release
+ctest --test-dir build/usb_io -C Release --output-on-failure
 flutter test
 powershell -ExecutionPolicy Bypass -File tool/package_windows.ps1
 powershell -ExecutionPolicy Bypass -File tool/package_android.ps1
@@ -62,6 +67,6 @@ flutter drive --profile -d windows --driver=test_driver/navigation_performance.d
 
 界面采用分区快照与精确订阅，重建依赖和迁移边界见 [状态架构](docs/STATE_ARCHITECTURE.md)。
 
-2026-09-16 更新的 Windows 实机读写检查、MIDI/完整视图 ACK 修复、F/U 兼容、备份与恢复证明、鼓机初始化源码核对及未验收功能见 [实机核对报告](docs/HARDWARE_AUDIT.md)。当前测试机仍是 0.2.117-dev，鼓机被设备拒绝；未自动刷写固件。
+2026-09-16 的 Windows 实机读写检查、MIDI/完整视图 ACK 修复、F/U 兼容、备份与恢复证明、鼓机初始化源码核对及当时的未验收功能见 [历史实机核对报告](docs/HARDWARE_AUDIT.md)。该报告不是当前 WinUSB 固件的验收结论。
 
 设备参数写入与保存回执表示 RAM 状态；正常软关机才持久化。新版 F 厂商区只供编辑试听，需要另存到 U 用户区保留。社区、AI 音色、音轨分离与固件升级服务尚未接入。

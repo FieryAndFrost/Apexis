@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
-/// Only messages cross this boundary; all serial handles/buffers stay in the
+/// Only messages cross this boundary; all USB handles/buffers stay in the
 /// worker. A synchronous driver call must never run on the Flutter isolate.
-class CdcWorker {
-  CdcWorker(this.entryPoint, {this.timeout = const Duration(seconds: 5)});
+class UsbWorker {
+  UsbWorker(this.entryPoint, {this.timeout = const Duration(seconds: 5)});
   final void Function(SendPort) entryPoint;
   final Duration timeout;
   final _events = StreamController<List<Object?>>.broadcast();
@@ -46,12 +46,12 @@ class CdcWorker {
       });
     _errors = ReceivePort()
       ..listen((dynamic error) {
-        _fail(StateError('Windows CDC 工作线程异常：$error'));
+        _fail(StateError('Windows WinUSB 工作线程异常：$error'));
       });
     _exits = ReceivePort()
       ..listen((_) {
         if (!_disposed && _failure == null) {
-          _fail(StateError('Windows CDC 工作线程已退出，请重新启动应用'));
+          _fail(StateError('Windows WinUSB 工作线程已退出，请重新启动应用'));
         }
         _receive?.close();
         _errors?.close();
@@ -67,12 +67,12 @@ class CdcWorker {
           onError: _errors!.sendPort,
           onExit: _exits!.sendPort,
           errorsAreFatal: true,
-          debugName: 'Windows CDC',
+          debugName: 'Windows WinUSB',
         ),
         waiting,
       ], eagerError: true);
     } catch (e) {
-      _fail(StateError('Windows CDC 工作线程启动失败：$e'));
+      _fail(StateError('Windows WinUSB 工作线程启动失败：$e'));
       rethrow;
     }
   })();
@@ -92,11 +92,11 @@ class CdcWorker {
     final result = Completer<Object?>();
     _tail = _tail.then((_) async {
       try {
-        if (_disposed) throw StateError('Windows CDC 已关闭');
+        if (_disposed) throw StateError('Windows WinUSB 已关闭');
         if (_failure != null) throw _failure!;
         await _start();
         if (_failure != null) throw _failure!;
-        if (_disposed) throw StateError('Windows CDC 已关闭');
+        if (_disposed) throw StateError('Windows WinUSB 已关闭');
         final reply = _reply = Completer<Object?>();
         final waiting = reply.future.timeout(timeout);
         _commands!.send(['request', ++_sequence, operation, arguments]);
@@ -104,8 +104,8 @@ class CdcWorker {
           result.complete(await waiting);
         } on TimeoutException {
           final error = StateError(
-            'Windows CDC $operation 超时，已停止本次连接；界面仍可操作。'
-            '请关闭并重新启动应用，若仍无法连接请检查 GT1 的 CDC 固件和 USB 连接。',
+            'Windows WinUSB $operation 超时，已停止本次连接；界面仍可操作。'
+            '请关闭并重新启动应用，若仍无法连接请检查 GT1 的 WinUSB 固件和 USB 连接。',
           );
           _fail(error);
           result.completeError(error);
@@ -122,7 +122,7 @@ class CdcWorker {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
-    _fail(StateError('Windows CDC 已关闭'));
+    _fail(StateError('Windows WinUSB 已关闭'));
     await _events.close();
   }
 }

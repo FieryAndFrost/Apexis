@@ -71,7 +71,7 @@ def main():
             before_ids = {item["InstanceId"] for item in report["pnp_before"]}
             targets = [item for item in report["pnp_after"]
                        if item["InstanceId"] not in before_ids and probe.usb_root(item)
-                       and item["InstanceId"].upper().startswith(("USB\\VID_3654&PID_4D55\\", "USB\\VID_3654&PID_4B55\\"))
+                       and item["InstanceId"].upper().startswith(("USB\\VID_3654&PID_4D55\\", "USB\\VID_3654&PID_4B55\\", "USB\\VID_3654&PID_4E55\\"))
                        and item.get("Status") == "OK"]
             report["target_devices"] = targets
             report["gt1_enumerated"] = len(targets) == 1

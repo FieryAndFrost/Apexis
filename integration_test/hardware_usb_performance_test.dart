@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:apexis/data/controller.dart';
 import 'package:apexis/data/parameters.dart';
 import 'package:apexis/protocol/codec.dart';
-import 'package:apexis/transport/windows_cdc_transport.dart';
+import 'package:apexis/transport/windows_usb_transport.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -13,11 +13,11 @@ import 'hardware_readonly_test.dart' show readRange;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'CDC actual controller latency, bounded output change and restore',
+    'WinUSB actual controller latency, bounded output change and restore',
     (tester) async {
-      const output = String.fromEnvironment('CDC_PERF_REPORT');
-      const backupPath = String.fromEnvironment('CDC_PERF_BACKUP');
-      if (!const bool.fromEnvironment('HARDWARE_CDC_PERF') ||
+      const output = String.fromEnvironment('USB_PERF_REPORT');
+      const backupPath = String.fromEnvironment('USB_PERF_BACKUP');
+      if (!const bool.fromEnvironment('HARDWARE_USB_PERF') ||
           output.isEmpty ||
           backupPath.isEmpty) {
         fail('Explicit opt-in, verified backup, and new report path required');
@@ -43,14 +43,16 @@ void main() {
       );
       await save();
       final c = ApexisController();
-      final native = WindowsCdcTransport();
+      final native = WindowsUsbTransport();
       int? original, preset;
       var changed = false;
       try {
         final ports = await native.scan();
         expect(ports, hasLength(1));
         await tester.pumpWidget(
-          const MaterialApp(home: Scaffold(body: Text('CDC 延迟验证 · 单参数测试后恢复'))),
+          const MaterialApp(
+            home: Scaffold(body: Text('WinUSB 延迟验证 · 单参数测试后恢复')),
+          ),
         );
         final watch = Stopwatch()..start();
         await c.connect(native, ports.single);

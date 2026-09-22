@@ -850,8 +850,8 @@ class _ApexisShellState extends State<ApexisShell> with WidgetsBindingObserver {
             const SizedBox(height: 12),
             Text(
               kIsWeb
-                  ? '浏览器用于界面预览，原生应用支持 BLE / USB MIDI。'
-                  : '手机通过蓝牙连接，电脑通过 USB MIDI 连接。',
+                  ? '浏览器用于界面预览，Windows 应用通过私有 USB 连接。'
+                  : '手机通过蓝牙连接，Windows 通过私有 USB（WinUSB）连接。',
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.muted),
             ),
